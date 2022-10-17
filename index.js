@@ -1,4 +1,4 @@
-const os = require('os')
+/* const os = require('os')
 const crypto = require('crypto')
 const minimist = require('minimist')
 const DHT = require('@hyperswarm/dht')
@@ -86,4 +86,4 @@ function send (socket, command) {
 
 function sha256 (value) {
   return crypto.createHash('sha256').update(value).digest()
-}
+} */
