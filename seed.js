@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const minimist = require('minimist')
 const DHT = require('@hyperswarm/dht')
 const Keychain = require('keypear')

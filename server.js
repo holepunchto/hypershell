@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const { readAuthorizedKeys, readPeerSeed, parseFirewall } = require('./util.js')
 const minimist = require('minimist')
 const DHT = require('@hyperswarm/dht')
@@ -43,4 +44,5 @@ const keyPair = DHT.keyPair(seed)
 server.listen(keyPair).then(() => {
   console.log('To connect to this ssh server, on another computer run')
   console.log('hypershell ' + keyPair.publicKey.toString('hex'))
+  console.log()
 })

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const { readPeerSeed } = require('./util.js')
 const minimist = require('minimist')
 const DHT = require('@hyperswarm/dht')

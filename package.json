@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "description": "",
   "main": "index.js",
+  "bin": {
+    "hypershell-server": "./server.js",
+    "hypershell": "./client.js",
+    "hypershell-seed": "./seed.js"
+  },
   "scripts": {
     "test": "standard && brittle test/*.js",
     "lint": "standard"
