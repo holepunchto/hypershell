@@ -29,6 +29,7 @@ process.stdin.pipe(socket).pipe(process.stdout)
 socket.on('error', function (error) {
   if (error.code === 'ECONNRESET') console.error('Connection closed.')
   else if (error.code === 'ETIMEDOUT') console.error('Connection timed out.')
+  else if (error.code === 'PEER_NOT_FOUND' || error.code === 'PEER_CONNECTION_FAILED') console.error(error.message)
   else console.error(error)
 
   process.exit()
