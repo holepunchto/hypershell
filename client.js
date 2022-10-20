@@ -27,6 +27,9 @@ process.stdin.setRawMode(true)
 process.stdin.pipe(socket).pipe(process.stdout)
 
 socket.on('error', function (error) {
-  console.error(error)
+  if (error.code === 'ECONNRESET') console.error('Connection closed.')
+  else if (error.code === 'ETIMEDOUT') console.error('Connection timed out.')
+  else console.error(error)
+
   process.exit()
 })
