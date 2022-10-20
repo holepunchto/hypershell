@@ -23,6 +23,7 @@ const socket = node.connect(serverPublicKey, { keyPair })
 socket.setKeepAlive(5000)
 goodbye(() => socket.end(), 1)
 
+process.stdin.setRawMode(true)
 process.stdin.pipe(socket).pipe(process.stdout)
 
 socket.on('error', function (error) {
