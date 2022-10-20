@@ -44,7 +44,7 @@ function readPeerSeed (name) {
   const file = path.join(os.homedir(), '.hypershell', name || 'peer')
 
   if (!name && !fs.existsSync(file)) {
-    fs.writeFileSync(file, Keychain.seed().toString('hex'))
+    fs.writeFileSync(file, Keychain.seed().toString('hex') + '\n')
   }
 
   return Buffer.from(fs.readFileSync(file, 'utf8'), 'hex')
