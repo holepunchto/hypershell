@@ -50,7 +50,6 @@ function readPeerSeed (name) {
   return Buffer.from(fs.readFileSync(file, 'utf8'), 'hex')
 }
 
-
 function parseFirewall (publicKeys) {
   if (!publicKeys || typeof publicKeys === 'boolean') return () => false
 
