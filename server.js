@@ -34,8 +34,12 @@ server.on('connection', function (socket) {
     console.error(error.code, error)
   })
 
-  const tty = new TTY()
-  tty.attach(socket)
+  const shell = new TTY({
+    name: 'hypershell',
+    // columns: process.stdout.columns,
+    // rows: process.stdout.rows
+  })
+  shell.attach(socket)
 })
 
 console.log('Using this seed to generate the key-pair:\n' + seed.toString('hex') + '\n')
