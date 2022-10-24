@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const os = require('os')
 const { readAuthorizedKeys, readPeerSeed, parseFirewall } = require('./util.js')
 const minimist = require('minimist')
 const DHT = require('@hyperswarm/dht')
@@ -13,6 +14,8 @@ const goodbye = require('graceful-goodbye')
 const argv = minimist(process.argv.slice(2))
 const seed = argv.seed ? Buffer.from(argv.seed, 'hex') : readPeerSeed(argv._[0])
 const firewall = parseFirewall(readAuthorizedKeys(argv.firewall))
+
+const isWin = os.platform() === 'win32'
 
 const node = new DHT()
 goodbye(() => node.destroy(), 2)
@@ -36,8 +39,8 @@ server.on('connection', function (socket) {
 
   const shell = new TTY({
     name: 'hypershell',
-    // columns: process.stdout.columns,
-    // rows: process.stdout.rows
+    columns: isWin ? 8000 : undefined,
+    rows: isWin ? 2400 : undefined
   })
   shell.attach(socket)
 })
