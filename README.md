@@ -48,7 +48,7 @@ hypershell-keygen
 
 Now you could connect to servers (they have to allow your public key):
 ```bash
-hypershell a909204dc1c073ce7b8a5e18e88c67ecdc3a045bf8f3b75be771e2cebc8f60bd
+hypershell <server public key>
 ```
 
 ## Server setup
