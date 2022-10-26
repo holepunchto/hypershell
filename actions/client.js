@@ -5,8 +5,6 @@ const goodbye = require('graceful-goodbye')
 const { shelldir, errorAndExit } = require('../util.js')
 
 module.exports = async function (serverPublicKey, options = {}) {
-  console.log('client', { serverPublicKey }, options)
-
   const keyfile = options.f ? path.resolve(options.f) : path.join(shelldir, 'peer')
 
   if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
