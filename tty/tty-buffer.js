@@ -40,7 +40,7 @@ module.exports = class TTYBuffer {
   }
 
   toArray () {
-    const top = this.index
+    // const top = this.index
     const sorted = new Array(this.lines.length + (this.overflow ? 1 : 0))
 
     for (let i = 0; i < this.lines.length; i++) {
