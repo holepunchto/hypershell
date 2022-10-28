@@ -30,7 +30,6 @@ module.exports = async function (options = {}) {
   const seed = Keychain.seed()
   fs.mkdirSync(path.dirname(keyfile), { recursive: true })
   fs.writeFileSync(keyfile, seed.toString('hex') + comment + '\n', { flag: 'wx' })
-  // Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
 
   console.log('Your key has been saved in', keyfile)
   console.log('The public key is:')
