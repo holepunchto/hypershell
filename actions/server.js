@@ -4,9 +4,11 @@ const path = require('path')
 const DHT = require('@hyperswarm/dht')
 const goodbye = require('graceful-goodbye')
 const TTY = require('../tty/index.js')
+// const PTY = require('tt-native')
 const { shelldir, errorAndExit } = require('../util.js')
 
 const isWin = os.platform() === 'win32'
+// const shellFile = isWin ? 'powershell.exe' : (process.env.SHELL || 'bash')
 
 module.exports = async function (options = {}) {
   const keyfile = path.resolve(options.f)
@@ -75,6 +77,29 @@ function onConnection (socket) {
     rows: isWin ? 2400 : undefined
   })
   shell.attach(socket)
+
+  /* const pty = PTY.spawn(shellFile, null, {
+    cwd: process.env.HOME,
+    // env: process.env,
+    width: isWin ? 8000 : 80, // columns
+    height: isWin ? 2400 : 24, // rows
+  })
+
+  pty.on('data', onDataPTY)
+  pty.once('close', () => socket.destroy())
+
+  socket.on('data', function (data) {
+    pty.write(data)
+  })
+  socket.on('close', function () {
+    pty.removeListener('data', onDataPTY)
+    pty.kill()
+  })
+  socket.on('error', () => socket.destroy())
+
+  function onDataPTY (data) {
+    socket.write(data)
+  } */
 }
 
 function readAuthorizedKeys (firewall) {
