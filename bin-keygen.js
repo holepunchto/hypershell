@@ -1,16 +1,5 @@
 #!/usr/bin/env node
 
-/*
-hypershell-server
-hypershell <server public key hex or z32>
-hypershell-keygen
-
-hypershell-copy-id
-hypershell-files // like scp
-hypershell-tunnel // create (remote) or receive (local) a port forward
-hypershell-proxy // dynamic port forwarding (SOCKS proxy)
-*/
-
 const { Command } = require('commander')
 
 const program = new Command()

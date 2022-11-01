@@ -3,7 +3,6 @@ const os = require('os')
 const path = require('path')
 const DHT = require('@hyperswarm/dht')
 const goodbye = require('graceful-goodbye')
-// const TTY = require('../tty/index.js')
 const PTY = require('tt-native')
 const { shelldir, errorAndExit } = require('../util.js')
 
@@ -62,25 +61,18 @@ function onConnection (socket) {
   socket.setKeepAlive(5000)
 
   // + temp debug
-  socket.on('open', () => console.log('socket opened', pubkey))
-  socket.on('close', () => console.log('socket closed', pubkey))
-  socket.on('end', () => console.log('socket ended / wants to end', pubkey))
+  // socket.on('open', () => console.log('socket opened', pubkey))
+  // socket.on('close', () => console.log('socket closed', pubkey))
+  // socket.on('end', () => console.log('socket ended / wants to end', pubkey))
   // socket.on('end', () => socket.end())
 
   socket.on('error', function (error) {
     console.error(error.code, error)
   })
 
-  /* const shell = new TTY({
-    name: 'hypershell',
-    columns: isWin ? 8000 : undefined,
-    rows: isWin ? 2400 : undefined
-  })
-  shell.attach(socket) */
-
   const pty = PTY.spawn(shellFile, null, {
     cwd: process.env.HOME,
-    // env: process.env,
+    env: process.env,
     width: isWin ? 8000 : 80, // columns
     height: isWin ? 2400 : 24, // rows
   })
