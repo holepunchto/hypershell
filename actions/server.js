@@ -60,12 +60,6 @@ function onConnection (socket) {
 
   socket.setKeepAlive(5000)
 
-  // + temp debug
-  // socket.on('open', () => console.log('socket opened', pubkey))
-  // socket.on('close', () => console.log('socket closed', pubkey))
-  // socket.on('end', () => console.log('socket ended / wants to end', pubkey))
-  // socket.on('end', () => socket.end())
-
   socket.on('error', function (error) {
     console.error(error.code, error)
   })
