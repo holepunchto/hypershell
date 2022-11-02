@@ -28,7 +28,6 @@
     "graceful-goodbye": "^1.1.0",
     "keypear": "^1.1.1",
     "minimist": "^1.2.7",
-    "node-pty": "^0.10.1",
     "tt-native": "github:holepunchto/tt-native"
   },
   "devDependencies": {
