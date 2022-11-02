@@ -87,7 +87,6 @@ function onConnection (socket) {
     pty.removeListener('data', onDataPTY)
     pty.kill('SIGKILL')
   })
-  socket.on('error', () => socket.destroy())
 
   function onDataPTY (data) {
     socket.write(data)
