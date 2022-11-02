@@ -2,10 +2,10 @@ const fs = require('fs')
 const path = require('path')
 const DHT = require('@hyperswarm/dht')
 const goodbye = require('graceful-goodbye')
-const { shelldir, errorAndExit } = require('../util.js')
+const { SHELLDIR } = require('../constants.js')
 
 module.exports = async function (serverPublicKey, options = {}) {
-  const keyfile = options.f ? path.resolve(options.f) : path.join(shelldir, 'peer')
+  const keyfile = options.f ? path.resolve(options.f) : path.join(SHELLDIR, 'peer')
 
   if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
 
@@ -34,4 +34,9 @@ module.exports = async function (serverPublicKey, options = {}) {
 
     process.exit()
   })
+}
+
+function errorAndExit (message) {
+  console.error('Error:', message)
+  process.exit(1)
 }

@@ -3,14 +3,14 @@ const path = require('path')
 const readline = require('readline')
 const Keychain = require('keypear')
 const DHT = require('@hyperswarm/dht')
-const { shelldir, errorAndExit } = require('../util.js')
+const { SHELLDIR } = require('../constants.js')
 
 module.exports = async function (options = {}) {
   console.log('Generating key.')
 
   let keyfile
   if (!options.f) {
-    keyfile = path.join(shelldir, 'peer')
+    keyfile = path.join(SHELLDIR, 'peer')
 
     const answer = await question('Enter file in which to save the key (' + keyfile + '): ')
     const filename = answer.trim()
@@ -48,4 +48,9 @@ function question (query = '') {
       resolve(answer)
     })
   })
+}
+
+function errorAndExit (message) {
+  console.error('Error:', message)
+  process.exit(1)
 }

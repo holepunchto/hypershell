@@ -4,14 +4,14 @@ const path = require('path')
 const DHT = require('@hyperswarm/dht')
 const goodbye = require('graceful-goodbye')
 const PTY = require('tt-native')
-const { shelldir, errorAndExit } = require('../util.js')
+const { SHELLDIR } = require('../constants.js')
 
 const isWin = os.platform() === 'win32'
 const shellFile = isWin ? 'powershell.exe' : (process.env.SHELL || 'bash')
 
 module.exports = async function (options = {}) {
   const keyfile = path.resolve(options.f)
-  const firewall = options.firewall ? path.resolve(options.firewall) : path.join(shelldir, 'firewall')
+  const firewall = options.firewall ? path.resolve(options.firewall) : path.join(SHELLDIR, 'firewall')
 
   if (!options.firewall && !fs.existsSync(firewall)) {
     console.log('Creating default firewall', firewall)
@@ -106,4 +106,9 @@ function readAuthorizedKeys (firewall) {
     if (error.code === 'ENOENT') return []
     throw error
   }
+}
+
+function errorAndExit (message) {
+  console.error('Error:', message)
+  process.exit(1)
 }
