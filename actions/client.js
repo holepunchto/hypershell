@@ -37,9 +37,15 @@ module.exports = async function (serverPublicKey, options = {}) {
     },
     messages: [
       {
-        encoding: c.buffer,
+        encoding: c.raw,
         onmessage (data) {
           process.stdout.write(data)
+        }
+      },
+      {
+        encoding: c.json,
+        onmessage (data) {
+          console.log('onresize', data)
         }
       }
     ],
@@ -54,34 +60,12 @@ module.exports = async function (serverPublicKey, options = {}) {
 
   channel.open()
 
-  const channel2 = mux.createChannel({
-    protocol: 'hypershell-sh',
-    id: Buffer.from('resize'),
-    onopen () {
-      console.log('resize onopen', Date.now(), this.userData)
-    },
-    messages: [
-      {
-        encoding: c.buffer,
-        onmessage (data) {
-          // 
-        }
-      }
-    ],
-    onclose () {
-      console.log('resize onclose', Date.now())
-    },
-    ondestroy () {
-      console.log('resize ondestroy', Date.now())
-    }
-  })
-
-  channel2.open()
-
   process.stdin.setRawMode(true)
   process.stdin.on('data', function (data) {
     channel.messages[0].send(data)
   })
+
+  channel.messages[1].send({ width: 100 })
 
   socket.on('error', function (error) {
     if (error.code === 'ECONNRESET') console.error('Connection closed.')

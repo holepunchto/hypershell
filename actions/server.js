@@ -89,13 +89,8 @@ function onConnection (socket) {
       }
     },
     messages: [
-      {
-        encoding: c.buffer,
-        onmessage (data) {
-          const { pty } = channel.userData
-          pty.write(data)
-        }
-      }
+      { encoding: c.raw, onmessage: onstdin },
+      { encoding: c.json, onmessage: onresize }
     ],
     onclose () {
       console.log('terminal onclose', Date.now())
@@ -104,7 +99,7 @@ function onConnection (socket) {
         const { pty, onDataPTY } = this.userData
 
         if (pty) {
-          pty.removeListener('data', onDataPTY)
+          // pty.removeListener('data', onDataPTY)
           pty.kill('SIGKILL')
         }
       }
@@ -116,33 +111,19 @@ function onConnection (socket) {
 
   channel.open()
 
-  const channel2 = mux.createChannel({
-    protocol: 'hypershell-sh',
-    id: Buffer.from('resize'),
-    onopen () {
-      console.log('resize onopen', Date.now(), this.userData)
-    },
-    messages: [
-      {
-        encoding: c.buffer,
-        onmessage (data) {
-          // 
-        }
-      }
-    ],
-    onclose () {
-      console.log('resize onclose', Date.now())
-    },
-    ondestroy () {
-      console.log('resize ondestroy', Date.now())
-    }
-  })
-
-  channel2.open()
-
   socket.on('error', function (error) {
     console.error(error.code, error)
   })
+}
+
+function onstdin (data, channel) {
+  const { pty } = channel.userData
+  pty.write(data)
+}
+
+function onresize (data, channel) {
+  const { pty } = channel.userData
+  console.log('onresize', data)
 }
 
 function readAuthorizedKeys (firewall) {
