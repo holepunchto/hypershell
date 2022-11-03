@@ -89,7 +89,11 @@ function onConnection (socket) {
       if (pty) {
         pty.removeListener('data', onDataPTY)
         pty.kill('SIGKILL')
+        pty = null
       }
+    },
+    ondestroy () {
+      console.log('channel ondestroy', Date.now())
     }
   })
 
