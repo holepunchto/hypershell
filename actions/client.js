@@ -32,8 +32,9 @@ module.exports = async function (serverPublicKey, options = {}) {
   const channel = mux.createChannel({
     protocol: 'hypershell-sh',
     id: Buffer.from('terminal'),
-    onopen () {
-      console.log('terminal onopen', Date.now())
+    handshake: c.json,
+    onopen (handshake) {
+      console.log('terminal onopen', Date.now(), handshake)
     },
     messages: [
       {
@@ -58,22 +59,22 @@ module.exports = async function (serverPublicKey, options = {}) {
     }
   })
 
-  channel.open()
+  channel.open({
+    width: process.stdout.columns,
+    height: process.stdout.rows
+  })
 
   process.stdin.setRawMode(true)
   process.stdin.on('data', function (data) {
     channel.messages[0].send(data)
   })
 
-  process.stdout.on('resize', onResize)
-  onResize()
-
-  function onResize () {
+  process.stdout.on('resize', function () {
     channel.messages[1].send({
       width: process.stdout.columns,
       height: process.stdout.rows
     })
-  }
+  })
 
   socket.on('error', function (error) {
     if (error.code === 'ECONNRESET') console.error('Connection closed.')

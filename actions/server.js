@@ -69,14 +69,15 @@ function onConnection (socket) {
   const channel = mux.createChannel({
     protocol: 'hypershell-sh',
     id: Buffer.from('terminal'),
-    onopen () {
-      console.log('terminal onopen', Date.now())
+    handshake: c.json,
+    onopen (handshake) {
+      console.log('terminal onopen', Date.now(), handshake)
 
       const pty = PTY.spawn(shellFile, null, {
         cwd: process.env.HOME,
         env: process.env,
-        // width: isWin ? 8000 : 80, // columns
-        // height: isWin ? 2400 : 24, // rows
+        width: handshake.width, // isWin ? 8000 : 80, // columns
+        height: handshake.height // isWin ? 2400 : 24, // rows
       })
 
       pty.on('data', onDataPTY)
@@ -109,7 +110,7 @@ function onConnection (socket) {
     }
   })
 
-  channel.open()
+  channel.open({})
 
   socket.on('error', function (error) {
     console.error(error.code, error)
