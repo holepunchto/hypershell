@@ -58,9 +58,9 @@ module.exports = async function (options = {}) {
 
 function onConnection (socket) {
   const pubkey = socket.remotePublicKey.toString('hex')
-  socket.once('open', () => console.log('socket opened', pubkey.substr(0, 6)))
+  socket.once('open', () => console.log('socket opened', Date.now(), pubkey.substr(0, 6)))
   socket.once('end', () => console.log('socket ended', Date.now()))
-  socket.once('close', () => console.log('socket closed', pubkey.substr(0, 6)))
+  socket.once('close', () => console.log('socket closed', Date.now(), pubkey.substr(0, 6)))
 
   socket.setKeepAlive(5000)
 
