@@ -65,7 +65,15 @@ module.exports = async function (serverPublicKey, options = {}) {
     channel.messages[0].send(data)
   })
 
-  channel.messages[1].send({ width: 100 })
+  process.stdout.on('resize', onResize)
+  onResize()
+
+  function onResize () {
+    channel.messages[1].send({
+      width: process.stdout.columns,
+      height: process.stdout.rows
+    })
+  }
 
   socket.on('error', function (error) {
     if (error.code === 'ECONNRESET') console.error('Connection closed.')

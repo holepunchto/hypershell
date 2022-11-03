@@ -75,8 +75,8 @@ function onConnection (socket) {
       const pty = PTY.spawn(shellFile, null, {
         cwd: process.env.HOME,
         env: process.env,
-        width: isWin ? 8000 : 80, // columns
-        height: isWin ? 2400 : 24, // rows
+        // width: isWin ? 8000 : 80, // columns
+        // height: isWin ? 2400 : 24, // rows
       })
 
       pty.on('data', onDataPTY)
@@ -122,8 +122,9 @@ function onstdin (data, channel) {
 }
 
 function onresize (data, channel) {
-  const { pty } = channel.userData
   console.log('onresize', data)
+  const { pty } = channel.userData
+  pty.resize(data.width, data.height)
 }
 
 function readAuthorizedKeys (firewall) {
