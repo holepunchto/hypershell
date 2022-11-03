@@ -38,6 +38,9 @@ module.exports = async function (serverPublicKey, options = {}) {
     onclose () {
       console.log('channel onclose', Date.now())
       socket.end()
+    },
+    ondestroy () {
+      console.log('channel ondestroy', Date.now())
     }
   })
 
