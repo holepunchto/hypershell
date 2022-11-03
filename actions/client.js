@@ -21,9 +21,9 @@ module.exports = async function (serverPublicKey, options = {}) {
 
   const socket = node.connect(serverPublicKey, { keyPair })
 
-  socket.once('open', () => console.log('socket opened', Date.now()))
-  socket.once('end', () => console.log('socket ended', Date.now()))
-  socket.once('close', () => console.log('socket closed', Date.now()))
+  // socket.once('open', () => console.log('socket opened', Date.now()))
+  // socket.once('end', () => console.log('socket ended', Date.now()))
+  // socket.once('close', () => console.log('socket closed', Date.now()))
 
   socket.setKeepAlive(5000)
 
