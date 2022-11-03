@@ -34,6 +34,14 @@ module.exports = async function (serverPublicKey, options = {}) {
     onopen () {
       console.log('channel onopen', Date.now())
     },
+    messages: [
+      {
+        encoding: c.buffer,
+        onmessage (data) {
+          process.stdout.write(data)
+        }
+      }
+    ],
     onclose () {
       console.log('channel onclose', Date.now())
       socket.end()
@@ -45,16 +53,9 @@ module.exports = async function (serverPublicKey, options = {}) {
 
   channel.open()
 
-  const m = channel.addMessage({
-    encoding: c.buffer,
-    onmessage (data) {
-      process.stdout.write(data)
-    }
-  })
-
   process.stdin.setRawMode(true)
   process.stdin.on('data', function (data) {
-    m.send(data)
+    channel.messages[0].send(data)
   })
 
   socket.on('error', function (error) {
