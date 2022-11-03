@@ -70,7 +70,7 @@ function onConnection (socket) {
     protocol: 'hypershell-sh',
     id: Buffer.from('terminal'),
     onopen () {
-      console.log('channel onopen', Date.now())
+      console.log('terminal onopen', Date.now())
 
       const pty = PTY.spawn(shellFile, null, {
         cwd: process.env.HOME,
@@ -98,7 +98,7 @@ function onConnection (socket) {
       }
     ],
     onclose () {
-      console.log('channel onclose', Date.now())
+      console.log('terminal onclose', Date.now())
 
       if (this.userData) {
         const { pty, onDataPTY } = this.userData
@@ -110,11 +110,35 @@ function onConnection (socket) {
       }
     },
     ondestroy () {
-      console.log('channel ondestroy', Date.now())
+      console.log('terminal ondestroy', Date.now())
     }
   })
 
   channel.open()
+
+  const channel2 = mux.createChannel({
+    protocol: 'hypershell-sh',
+    id: Buffer.from('resize'),
+    onopen () {
+      console.log('resize onopen', Date.now(), this.userData)
+    },
+    messages: [
+      {
+        encoding: c.buffer,
+        onmessage (data) {
+          // 
+        }
+      }
+    ],
+    onclose () {
+      console.log('resize onclose', Date.now())
+    },
+    ondestroy () {
+      console.log('resize ondestroy', Date.now())
+    }
+  })
+
+  channel2.open()
 
   socket.on('error', function (error) {
     console.error(error.code, error)

@@ -33,7 +33,7 @@ module.exports = async function (serverPublicKey, options = {}) {
     protocol: 'hypershell-sh',
     id: Buffer.from('terminal'),
     onopen () {
-      console.log('channel onopen', Date.now())
+      console.log('terminal onopen', Date.now())
     },
     messages: [
       {
@@ -44,15 +44,39 @@ module.exports = async function (serverPublicKey, options = {}) {
       }
     ],
     onclose () {
-      console.log('channel onclose', Date.now())
+      console.log('terminal onclose', Date.now())
       socket.end()
     },
     ondestroy () {
-      console.log('channel ondestroy', Date.now())
+      console.log('terminal ondestroy', Date.now())
     }
   })
 
   channel.open()
+
+  const channel2 = mux.createChannel({
+    protocol: 'hypershell-sh',
+    id: Buffer.from('resize'),
+    onopen () {
+      console.log('resize onopen', Date.now(), this.userData)
+    },
+    messages: [
+      {
+        encoding: c.buffer,
+        onmessage (data) {
+          // 
+        }
+      }
+    ],
+    onclose () {
+      console.log('resize onclose', Date.now())
+    },
+    ondestroy () {
+      console.log('resize ondestroy', Date.now())
+    }
+  })
+
+  channel2.open()
 
   process.stdin.setRawMode(true)
   process.stdin.on('data', function (data) {
