@@ -99,11 +99,13 @@ function onConnection (socket) {
     onclose () {
       console.log('channel onclose', Date.now())
 
-      const { pty, onDataPTY } = this.userData
+      if (this.userData) {
+        const { pty, onDataPTY } = this.userData
 
-      if (pty) {
-        pty.removeListener('data', onDataPTY)
-        pty.kill('SIGKILL')
+        if (pty) {
+          pty.removeListener('data', onDataPTY)
+          pty.kill('SIGKILL')
+        }
       }
     },
     ondestroy () {
