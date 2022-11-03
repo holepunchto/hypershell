@@ -63,7 +63,7 @@ function onConnection (socket) {
   socket.once('close', () => console.log('socket closed', pubkey.substr(0, 6)))
 
   socket.setKeepAlive(5000)
-  socket.once('end', () => socket.end())
+  // socket.once('end', () => socket.end())
 
   const mux = new Protomux(socket)
 

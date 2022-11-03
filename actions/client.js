@@ -26,7 +26,7 @@ module.exports = async function (serverPublicKey, options = {}) {
   socket.once('close', () => console.log('socket closed', Date.now()))
 
   socket.setKeepAlive(5000)
-  socket.once('end', () => socket.end())
+  // socket.once('end', () => socket.end())
 
   const mux = new Protomux(socket)
 
