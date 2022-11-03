@@ -37,18 +37,9 @@ module.exports = async function (serverPublicKey, options = {}) {
       console.log('terminal onopen', Date.now(), handshake)
     },
     messages: [
-      {
-        encoding: c.raw,
-        onmessage (data) {
-          process.stdout.write(data)
-        }
-      },
-      {
-        encoding: c.json,
-        onmessage (data) {
-          console.log('onresize', data)
-        }
-      }
+      { encoding: c.raw }, // stdin
+      { encoding: c.raw, onmessage: onstdout }, // stdout
+      { encoding: c.json } // resize
     ],
     onclose () {
       console.log('terminal onclose', Date.now())
@@ -69,8 +60,12 @@ module.exports = async function (serverPublicKey, options = {}) {
     channel.messages[0].send(data)
   })
 
+  function onstdout (data) {
+    process.stdout.write(data)
+  }
+
   process.stdout.on('resize', function () {
-    channel.messages[1].send({
+    channel.messages[2].send({
       width: process.stdout.columns,
       height: process.stdout.rows
     })

@@ -80,29 +80,27 @@ function onConnection (socket) {
         height: handshake.height // isWin ? 2400 : 24, // rows
       })
 
-      pty.on('data', onDataPTY)
-      pty.once('close', () => channel.close()) // socket.destroy()
+      pty.on('data', function (data) {
+        channel.messages[1].send(data)
+      })
 
-      this.userData = { pty, onDataPTY }
+      pty.once('close', function () {
+        channel.close()
+      })
 
-      function onDataPTY (data) {
-        channel.messages[0].send(data)
-      }
+      this.userData = { pty }
     },
     messages: [
-      { encoding: c.raw, onmessage: onstdin },
-      { encoding: c.json, onmessage: onresize }
+      { encoding: c.raw, onmessage: onstdin }, // stdin
+      { encoding: c.raw }, // stdout
+      { encoding: c.json, onmessage: onresize } // resize
     ],
     onclose () {
       console.log('terminal onclose', Date.now())
 
       if (this.userData) {
-        const { pty, onDataPTY } = this.userData
-
-        if (pty) {
-          // pty.removeListener('data', onDataPTY)
-          pty.kill('SIGKILL')
-        }
+        const { pty } = this.userData
+        pty.kill('SIGKILL')
       }
     },
     ondestroy () {
