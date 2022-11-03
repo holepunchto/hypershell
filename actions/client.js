@@ -31,6 +31,7 @@ module.exports = async function (serverPublicKey, options = {}) {
 
   const channel = mux.createChannel({
     protocol: 'hypershell-sh',
+    id: Buffer.from('terminal'),
     onopen () {
       console.log('channel onopen', Date.now())
     },
