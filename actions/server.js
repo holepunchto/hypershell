@@ -67,13 +67,12 @@ function onConnection (socket) {
 
   const mux = new Protomux(socket)
 
-  let pty = null
   const channel = mux.createChannel({
     protocol: 'hypershell-sh',
     onopen () {
       console.log('channel onopen', Date.now())
 
-      pty = PTY.spawn(shellFile, null, {
+      const pty = PTY.spawn(shellFile, null, {
         cwd: process.env.HOME,
         env: process.env,
         width: isWin ? 8000 : 80, // columns
@@ -82,14 +81,16 @@ function onConnection (socket) {
 
       pty.on('data', onDataPTY)
       pty.once('close', () => channel.close()) // socket.destroy()
+
+      this.userData = pty
     },
     onclose () {
       console.log('channel onclose', Date.now())
 
+      const pty = this.userData
       if (pty) {
         pty.removeListener('data', onDataPTY)
         pty.kill('SIGKILL')
-        pty = null
       }
     },
     ondestroy () {
@@ -102,6 +103,7 @@ function onConnection (socket) {
   const m = channel.addMessage({
     encoding: c.buffer,
     onmessage (data) {
+      const pty = channel.userData
       pty.write(data)
     }
   })
