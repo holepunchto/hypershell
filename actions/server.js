@@ -61,6 +61,7 @@ function onConnection (socket) {
   // socket.once('open', () => console.log('socket opened', Date.now(), pubkey.substr(0, 6)))
   // socket.once('end', () => console.log('socket ended', Date.now()))
   // socket.once('close', () => console.log('socket closed', Date.now(), pubkey.substr(0, 6)))
+  socket.on('error', (error) => console.error(error.code, error))
 
   socket.setKeepAlive(5000)
 
@@ -109,10 +110,6 @@ function onConnection (socket) {
   })
 
   channel.open({})
-
-  socket.on('error', function (error) {
-    console.error(error.code, error)
-  })
 }
 
 function onstdin (data, channel) {
