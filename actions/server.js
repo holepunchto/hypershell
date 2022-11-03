@@ -82,12 +82,12 @@ function onConnection (socket) {
       pty.on('data', onDataPTY)
       pty.once('close', () => channel.close()) // socket.destroy()
 
-      this.userData = pty
+      this.userData = { pty }
     },
     onclose () {
       console.log('channel onclose', Date.now())
 
-      const pty = this.userData
+      const { pty } = this.userData
       if (pty) {
         pty.removeListener('data', onDataPTY)
         pty.kill('SIGKILL')
@@ -103,7 +103,7 @@ function onConnection (socket) {
   const m = channel.addMessage({
     encoding: c.buffer,
     onmessage (data) {
-      const pty = channel.userData
+      const { pty } = channel.userData
       pty.write(data)
     }
   })
