@@ -28,7 +28,7 @@ module.exports = async function (serverPublicKey, options = {}) {
 
   const channel = mux.createChannel({
     protocol: 'hypershell-sh',
-    id: Buffer.from('terminal'),
+    id: null,
     handshake: c.json,
     messages: [
       { encoding: c.buffer }, // stdin
