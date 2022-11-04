@@ -4,10 +4,14 @@ const path = require('path')
 const DHT = require('@hyperswarm/dht')
 const goodbye = require('graceful-goodbye')
 const PTY = require('tt-native')
+const Protomux = require('protomux')
+const c = require('compact-encoding')
 const { SHELLDIR } = require('../constants.js')
+const m = require('../messages.js')
 
 const isWin = os.platform() === 'win32'
 const shellFile = isWin ? 'powershell.exe' : (process.env.SHELL || 'bash')
+const EMPTY = Buffer.alloc(0)
 
 module.exports = async function (options = {}) {
   const keyfile = path.resolve(options.f)
@@ -55,36 +59,70 @@ module.exports = async function (options = {}) {
 }
 
 function onConnection (socket) {
-  const pubkey = socket.remotePublicKey.toString('hex')
-  console.log('connection', pubkey)
+  socket.on('error', (error) => console.error(error.code, error))
 
   socket.setKeepAlive(5000)
 
-  socket.on('error', function (error) {
-    console.error(error.code, error)
+  const mux = new Protomux(socket)
+
+  const channel = mux.createChannel({
+    protocol: 'hypershell',
+    id: null,
+    handshake: m.handshake,
+    onopen (handshake) {
+      if (!handshake.spawn) {
+        channel.close()
+        return
+      }
+
+      let pty
+      try {
+        pty = PTY.spawn(handshake.spawn.file || shellFile, handshake.spawn.args, {
+          cwd: process.env.HOME,
+          env: process.env,
+          width: handshake.spawn.width,
+          height: handshake.spawn.height
+        })
+      } catch {
+        channel.close()
+        return
+      }
+
+      pty.on('data', function (data) {
+        channel.messages[1].send(data)
+      })
+
+      pty.once('close', function () {
+        channel.close()
+      })
+
+      this.userData = { pty }
+    },
+    messages: [
+      { encoding: c.buffer, onmessage: onstdin }, // stdin
+      { encoding: c.buffer }, // stdout
+      { encoding: m.resize, onmessage: onresize } // resize
+    ],
+    onclose () {
+      if (this.userData) {
+        const { pty } = this.userData
+        pty.kill('SIGKILL')
+      }
+    }
   })
 
-  const pty = PTY.spawn(shellFile, null, {
-    cwd: process.env.HOME,
-    env: process.env,
-    width: isWin ? 8000 : 80, // columns
-    height: isWin ? 2400 : 24, // rows
-  })
+  channel.open({})
+}
 
-  pty.on('data', onDataPTY)
-  pty.once('close', () => socket.destroy())
+function onstdin (data, channel) {
+  const { pty } = channel.userData
+  if (data === null) pty.write(EMPTY)
+  else pty.write(data)
+}
 
-  socket.on('data', function (data) {
-    pty.write(data)
-  })
-  socket.on('close', function () {
-    pty.removeListener('data', onDataPTY)
-    pty.kill('SIGKILL')
-  })
-
-  function onDataPTY (data) {
-    socket.write(data)
-  }
+function onresize (data, channel) {
+  const { pty } = channel.userData
+  pty.resize(data.width, data.height)
 }
 
 function readAuthorizedKeys (firewall) {
