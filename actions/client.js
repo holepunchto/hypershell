@@ -55,8 +55,6 @@ module.exports = async function (serverPublicKey, options = {}) {
     height: process.stdout.rows
   })
 
-  channel.messages[0].send(Buffer.from(''))
-
   process.stdin.setRawMode(true)
   process.stdin.on('data', function (data) {
     channel.messages[0].send(data)
