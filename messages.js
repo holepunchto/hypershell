@@ -4,14 +4,13 @@ const stringArray = c.array(c.string)
 
 const spawn = {
   preencode (state, s) {
-    c.string.preencode(state, s.file)
-    stringArray.preencode(state, s.args)
+    c.string.preencode(state, s.file || '')
     c.uint.preencode(state, s.width)
     c.uint.preencode(state, s.height)
   },
   encode (state, s) {
-    c.string.encode(state, s.file)
-    stringArray.encode(state, s.args)
+    c.string.encode(state, s.file || '')
+    stringArray.encode(state, s.args || [])
     c.uint.encode(state, s.width)
     c.uint.encode(state, s.height)
   },
