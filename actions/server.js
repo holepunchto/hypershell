@@ -114,7 +114,6 @@ function onConnection (socket) {
 
 function onstdin (data, channel) {
   const { pty } = channel.userData
-  if (data === null) pty.write(Buffer.from(''))
   else pty.write(data)
 }
 
