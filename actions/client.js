@@ -21,10 +21,6 @@ module.exports = async function (serverPublicKey, options = {}) {
 
   const socket = node.connect(serverPublicKey, { keyPair })
 
-  // socket.once('open', () => console.log('socket opened', Date.now()))
-  // socket.once('end', () => console.log('socket ended', Date.now()))
-  // socket.once('close', () => console.log('socket closed', Date.now()))
-
   socket.setKeepAlive(5000)
 
   const mux = new Protomux(socket)
@@ -33,20 +29,13 @@ module.exports = async function (serverPublicKey, options = {}) {
     protocol: 'hypershell-sh',
     id: Buffer.from('terminal'),
     handshake: c.json,
-    onopen (handshake) {
-      console.log('terminal onopen', Date.now(), handshake)
-    },
     messages: [
       { encoding: c.buffer }, // stdin
       { encoding: c.buffer, onmessage: onstdout }, // stdout
       { encoding: c.json } // resize
     ],
     onclose () {
-      console.log('terminal onclose', Date.now())
       socket.end()
-    },
-    ondestroy () {
-      console.log('terminal ondestroy', Date.now())
     }
   })
 

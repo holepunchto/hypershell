@@ -58,11 +58,7 @@ module.exports = async function (options = {}) {
 }
 
 function onConnection (socket) {
-  // const pubkey = socket.remotePublicKey.toString('hex')
-  // socket.once('open', () => console.log('socket opened', Date.now(), pubkey.substr(0, 6)))
-  // socket.once('end', () => console.log('socket ended', Date.now()))
-  // socket.once('close', () => console.log('socket closed', Date.now(), pubkey.substr(0, 6)))
-  socket.on('error', (error) => console.error(error.code, error))
+  // socket.on('error', (error) => console.error(error.code, error))
 
   socket.setKeepAlive(5000)
 
@@ -73,8 +69,6 @@ function onConnection (socket) {
     id: Buffer.from('terminal'),
     handshake: c.json,
     onopen (handshake) {
-      console.log('terminal onopen', Date.now(), handshake)
-
       const pty = PTY.spawn(shellFile, null, {
         cwd: process.env.HOME,
         env: process.env,
@@ -98,15 +92,10 @@ function onConnection (socket) {
       { encoding: c.json, onmessage: onresize } // resize
     ],
     onclose () {
-      console.log('terminal onclose', Date.now())
-
       if (this.userData) {
         const { pty } = this.userData
         pty.kill('SIGKILL')
       }
-    },
-    ondestroy () {
-      console.log('terminal ondestroy', Date.now())
     }
   })
 
@@ -120,7 +109,6 @@ function onstdin (data, channel) {
 }
 
 function onresize (data, channel) {
-  console.log('onresize', data)
   const { pty } = channel.userData
   pty.resize(data.width, data.height)
 }
