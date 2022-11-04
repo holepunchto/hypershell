@@ -70,6 +70,11 @@ function onConnection (socket) {
     id: null,
     handshake: m.handshake,
     onopen (handshake) {
+      if (!handshake.spawn) {
+        channel.close()
+        return
+      }
+
       const pty = PTY.spawn(handshake.spawn.file || shellFile, handshake.spawn.args, {
         cwd: process.env.HOME,
         env: process.env,
