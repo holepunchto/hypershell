@@ -92,8 +92,8 @@ function onConnection (socket) {
       this.userData = { pty }
     },
     messages: [
-      { encoding: c.raw, onmessage: onstdin }, // stdin
-      { encoding: c.raw }, // stdout
+      { encoding: c.buffer, onmessage: onstdin }, // stdin
+      { encoding: c.buffer }, // stdout
       { encoding: c.json, onmessage: onresize } // resize
     ],
     onclose () {
@@ -114,7 +114,8 @@ function onConnection (socket) {
 
 function onstdin (data, channel) {
   const { pty } = channel.userData
-  pty.write(data)
+  if (data === null) pty.write(Buffer.from(''))
+  else pty.write(data)
 }
 
 function onresize (data, channel) {

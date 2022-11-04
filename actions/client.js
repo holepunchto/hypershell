@@ -37,8 +37,8 @@ module.exports = async function (serverPublicKey, options = {}) {
       console.log('terminal onopen', Date.now(), handshake)
     },
     messages: [
-      { encoding: c.raw }, // stdin
-      { encoding: c.raw, onmessage: onstdout }, // stdout
+      { encoding: c.buffer }, // stdin
+      { encoding: c.buffer, onmessage: onstdout }, // stdout
       { encoding: c.json } // resize
     ],
     onclose () {
@@ -54,6 +54,8 @@ module.exports = async function (serverPublicKey, options = {}) {
     width: process.stdout.columns,
     height: process.stdout.rows
   })
+
+  channel.messages[0].send(Buffer.from(''))
 
   process.stdin.setRawMode(true)
   process.stdin.on('data', function (data) {
