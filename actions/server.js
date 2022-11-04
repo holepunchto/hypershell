@@ -69,8 +69,6 @@ function onConnection (socket) {
     id: null,
     handshake: cHandshake,
     onopen (handshake) {
-      console.log('onopen', handshake)
-
       const pty = PTY.spawn(shellFile, null, {
         cwd: process.env.HOME,
         env: process.env,
@@ -94,8 +92,6 @@ function onConnection (socket) {
       { encoding: c.json /* cHandshake */, onmessage: onresize } // resize
     ],
     onclose () {
-      console.log('onclose')
-
       if (this.userData) {
         const { pty } = this.userData
         pty.kill('SIGKILL')
@@ -138,17 +134,14 @@ function errorAndExit (message) {
 
 const cHandshake = {
   preencode (state, p) {
-    console.log('preencode', p)
     c.uint.preencode(state, p ? p.width : 0)
     c.uint.preencode(state, p ? p.height : 0)
   },
   encode (state, p) {
-    console.log('encode', p)
     c.uint.encode(state, p ? p.width : 0)
     c.uint.encode(state, p ? p.height : 0)
   },
   decode (state) {
-    console.log('decode', state)
     return {
       width: c.uint.decode(state),
       height: c.uint.decode(state)
