@@ -5,6 +5,7 @@ const stringArray = c.array(c.string)
 const spawn = {
   preencode (state, s) {
     c.string.preencode(state, s.file || '')
+    stringArray.preencode(state, s.args || [])
     c.uint.preencode(state, s.width)
     c.uint.preencode(state, s.height)
   },
