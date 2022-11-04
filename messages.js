@@ -32,7 +32,7 @@ const handshake = {
   },
   encode (state, h) {
     c.uint.encode(state, h.spawn ? 1 : 0)
-    if (h.spawn) spawn.encode(state, h.spawn)    
+    if (h.spawn) spawn.encode(state, h.spawn)
   },
   decode (state) {
     const flags = c.uint.decode(state)
