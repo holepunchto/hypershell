@@ -17,9 +17,10 @@ module.exports = async function (serverPublicKey, options = {}) {
   const keyPair = DHT.keyPair(seed)
 
   const node = new DHT()
-  goodbye(() => node.destroy())
+  goodbye(() => node.destroy(), 2)
 
   const socket = node.connect(serverPublicKey, { keyPair })
+  goodbye(() => socket.end(), 1)
 
   socket.setKeepAlive(5000)
 
