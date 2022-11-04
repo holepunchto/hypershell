@@ -83,13 +83,19 @@ function onConnection (socket) {
           width: handshake.spawn.width,
           height: handshake.spawn.height
         })
-      } catch {
+      } catch (error) {
+        channel.messages[3].send(1)
+        channel.messages[2].send(Buffer.from(error.toString() + '\n'))
         channel.close()
         return
       }
 
       pty.on('data', function (data) {
         channel.messages[1].send(data)
+      })
+
+      pty.once('exit', function (code) {
+        channel.messages[3].send(code)
       })
 
       pty.once('close', function () {
@@ -101,6 +107,8 @@ function onConnection (socket) {
     messages: [
       { encoding: c.buffer, onmessage: onstdin }, // stdin
       { encoding: c.buffer }, // stdout
+      { encoding: c.buffer }, // stderr
+      { encoding: c.uint }, // exit code
       { encoding: m.resize, onmessage: onresize } // resize
     ],
     onclose () {
