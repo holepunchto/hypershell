@@ -72,8 +72,8 @@ function onConnection (socket) {
       const pty = PTY.spawn(shellFile, null, {
         cwd: process.env.HOME,
         env: process.env,
-        width: handshake.width, // isWin ? 8000 : 80, // columns
-        height: handshake.height // isWin ? 2400 : 24, // rows
+        width: handshake.width,
+        height: handshake.height
       })
 
       pty.on('data', function (data) {
