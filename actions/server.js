@@ -66,7 +66,7 @@ function onConnection (socket) {
 
   const channel = mux.createChannel({
     protocol: 'hypershell-sh',
-    id: Buffer.from('terminal'),
+    id: null,
     handshake: cHandshake,
     onopen (handshake) {
       console.log('onopen', handshake)
