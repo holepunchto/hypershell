@@ -66,7 +66,7 @@ function onConnection (socket) {
   const mux = new Protomux(socket)
 
   const channel = mux.createChannel({
-    protocol: 'hypershell-sh',
+    protocol: 'hypershell',
     id: null,
     handshake: m.handshake,
     onopen (handshake) {
