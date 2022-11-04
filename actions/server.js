@@ -75,12 +75,18 @@ function onConnection (socket) {
         return
       }
 
-      const pty = PTY.spawn(handshake.spawn.file || shellFile, handshake.spawn.args, {
-        cwd: process.env.HOME,
-        env: process.env,
-        width: handshake.spawn.width,
-        height: handshake.spawn.height
-      })
+      let pty
+      try {
+        pty = PTY.spawn(handshake.spawn.file || shellFile, handshake.spawn.args, {
+          cwd: process.env.HOME,
+          env: process.env,
+          width: handshake.spawn.width,
+          height: handshake.spawn.height
+        })
+      } catch {
+        channel.close()
+        return
+      }
 
       pty.on('data', function (data) {
         channel.messages[1].send(data)
