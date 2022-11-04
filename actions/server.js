@@ -99,7 +99,7 @@ function onConnection (socket) {
     }
   })
 
-  channel.open({ width: 0, height: 0 })
+  channel.open()
 }
 
 function onstdin (data, channel) {
