@@ -7,6 +7,7 @@ const PTY = require('tt-native')
 const Protomux = require('protomux')
 const c = require('compact-encoding')
 const { SHELLDIR } = require('../constants.js')
+const m = require('../messages.js')
 
 const isWin = os.platform() === 'win32'
 const shellFile = isWin ? 'powershell.exe' : (process.env.SHELL || 'bash')
@@ -67,13 +68,13 @@ function onConnection (socket) {
   const channel = mux.createChannel({
     protocol: 'hypershell-sh',
     id: null,
-    handshake: cHandshake,
+    handshake: m.handshake,
     onopen (handshake) {
-      const pty = PTY.spawn(shellFile, null, {
+      const pty = PTY.spawn(handshake.spawn.file || shellFile, handshake.spawn.args, {
         cwd: process.env.HOME,
         env: process.env,
-        width: handshake.width,
-        height: handshake.height
+        width: handshake.spawn.width,
+        height: handshake.spawn.height
       })
 
       pty.on('data', function (data) {
@@ -89,7 +90,7 @@ function onConnection (socket) {
     messages: [
       { encoding: c.buffer, onmessage: onstdin }, // stdin
       { encoding: c.buffer }, // stdout
-      { encoding: c.json /* cHandshake */, onmessage: onresize } // resize
+      { encoding: m.resize, onmessage: onresize } // resize
     ],
     onclose () {
       if (this.userData) {
@@ -99,7 +100,7 @@ function onConnection (socket) {
     }
   })
 
-  channel.open()
+  channel.open({})
 }
 
 function onstdin (data, channel) {
@@ -130,21 +131,4 @@ function readAuthorizedKeys (firewall) {
 function errorAndExit (message) {
   console.error('Error:', message)
   process.exit(1)
-}
-
-const cHandshake = {
-  preencode (state, p) {
-    c.uint.preencode(state, p ? p.width : 0)
-    c.uint.preencode(state, p ? p.height : 0)
-  },
-  encode (state, p) {
-    c.uint.encode(state, p ? p.width : 0)
-    c.uint.encode(state, p ? p.height : 0)
-  },
-  decode (state) {
-    return {
-      width: c.uint.decode(state),
-      height: c.uint.decode(state)
-    }
-  }
 }

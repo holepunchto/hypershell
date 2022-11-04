@@ -5,6 +5,7 @@ const Protomux = require('protomux')
 const c = require('compact-encoding')
 const goodbye = require('graceful-goodbye')
 const { SHELLDIR } = require('../constants.js')
+const m = require('../messages.js')
 
 module.exports = async function (serverPublicKey, options = {}) {
   const keyfile = options.f ? path.resolve(options.f) : path.join(SHELLDIR, 'peer')
@@ -29,11 +30,11 @@ module.exports = async function (serverPublicKey, options = {}) {
   const channel = mux.createChannel({
     protocol: 'hypershell-sh',
     id: null,
-    handshake: cHandshake,
+    handshake: m.handshake,
     messages: [
       { encoding: c.buffer }, // stdin
       { encoding: c.buffer, onmessage: onstdout }, // stdout
-      { encoding: c.json /* cHandshake */ } // resize
+      { encoding: m.resize } // resize
     ],
     onclose () {
       socket.end()
@@ -41,8 +42,12 @@ module.exports = async function (serverPublicKey, options = {}) {
   })
 
   channel.open({
-    width: process.stdout.columns,
-    height: process.stdout.rows
+    spawn: {
+      file: '',
+      args: [],
+      width: process.stdout.columns,
+      height: process.stdout.rows
+    }
   })
 
   process.stdin.setRawMode(true)
@@ -80,21 +85,4 @@ module.exports = async function (serverPublicKey, options = {}) {
 function errorAndExit (message) {
   console.error('Error:', message)
   process.exit(1)
-}
-
-const cHandshake = {
-  preencode (state, p) {
-    c.uint.preencode(state, p ? p.width : 0)
-    c.uint.preencode(state, p ? p.height : 0)
-  },
-  encode (state, p) {
-    c.uint.encode(state, p ? p.width : 0)
-    c.uint.encode(state, p ? p.height : 0)
-  },
-  decode (state) {
-    return {
-      width: c.uint.decode(state),
-      height: c.uint.decode(state)
-    }
-  }
 }
