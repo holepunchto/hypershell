@@ -58,7 +58,7 @@ module.exports = async function (options = {}) {
 }
 
 function onConnection (socket) {
-  // socket.on('error', (error) => console.error(error.code, error))
+  socket.on('error', (error) => console.error(error.code, error))
 
   socket.setKeepAlive(5000)
 
