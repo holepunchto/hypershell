@@ -9,7 +9,7 @@ const c = require('compact-encoding')
 const { SHELLDIR } = require('../constants.js')
 
 const isWin = os.platform() === 'win32'
-const shellFile = isWin ? 'powershell.exe' : 'bash' // (process.env.SHELL || 'bash')
+const shellFile = isWin ? 'powershell.exe' : (process.env.SHELL || 'bash')
 const EMPTY = Buffer.alloc(0)
 
 module.exports = async function (options = {}) {
