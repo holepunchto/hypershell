@@ -10,6 +10,7 @@ const { SHELLDIR } = require('../constants.js')
 
 const isWin = os.platform() === 'win32'
 const shellFile = isWin ? 'powershell.exe' : 'bash' // (process.env.SHELL || 'bash')
+const EMPTY = Buffer.alloc(0)
 
 module.exports = async function (options = {}) {
   const keyfile = path.resolve(options.f)
@@ -114,6 +115,7 @@ function onConnection (socket) {
 
 function onstdin (data, channel) {
   const { pty } = channel.userData
+  if (data === null) pty.write(EMPTY)
   else pty.write(data)
 }
 
