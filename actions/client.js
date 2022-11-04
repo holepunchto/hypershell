@@ -29,13 +29,17 @@ module.exports = async function (serverPublicKey, options = {}) {
   const channel = mux.createChannel({
     protocol: 'hypershell-sh',
     id: null,
-    handshake: c.json,
+    handshake: cHandshake,
     messages: [
       { encoding: c.buffer }, // stdin
       { encoding: c.buffer, onmessage: onstdout }, // stdout
-      { encoding: c.json } // resize
+      { encoding: c.json /* cHandshake */ } // resize
     ],
+    onopen (handshake) {
+      console.log('onopen', handshake)
+    },
     onclose () {
+      console.log('onclose')
       socket.end()
     }
   })
@@ -80,4 +84,24 @@ module.exports = async function (serverPublicKey, options = {}) {
 function errorAndExit (message) {
   console.error('Error:', message)
   process.exit(1)
+}
+
+const cHandshake = {
+  preencode (state, p) {
+    console.log('preencode', p)
+    c.uint.preencode(state, p ? p.width : 0)
+    c.uint.preencode(state, p ? p.height : 0)
+  },
+  encode (state, p) {
+    console.log('encode', p)
+    c.uint.encode(state, p ? p.width : 0)
+    c.uint.encode(state, p ? p.height : 0)
+  },
+  decode (state) {
+    console.log('decode', state)
+    return {
+      width: c.uint.decode(state),
+      height: c.uint.decode(state)
+    }
+  }
 }

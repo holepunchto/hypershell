@@ -67,8 +67,10 @@ function onConnection (socket) {
   const channel = mux.createChannel({
     protocol: 'hypershell-sh',
     id: Buffer.from('terminal'),
-    handshake: c.json,
+    handshake: cHandshake,
     onopen (handshake) {
+      console.log('onopen', handshake)
+
       const pty = PTY.spawn(shellFile, null, {
         cwd: process.env.HOME,
         env: process.env,
@@ -89,9 +91,11 @@ function onConnection (socket) {
     messages: [
       { encoding: c.buffer, onmessage: onstdin }, // stdin
       { encoding: c.buffer }, // stdout
-      { encoding: c.json, onmessage: onresize } // resize
+      { encoding: c.json /* cHandshake */, onmessage: onresize } // resize
     ],
     onclose () {
+      console.log('onclose')
+
       if (this.userData) {
         const { pty } = this.userData
         pty.kill('SIGKILL')
@@ -99,7 +103,7 @@ function onConnection (socket) {
     }
   })
 
-  channel.open({})
+  channel.open({ width: 0, height: 0 })
 }
 
 function onstdin (data, channel) {
@@ -130,4 +134,24 @@ function readAuthorizedKeys (firewall) {
 function errorAndExit (message) {
   console.error('Error:', message)
   process.exit(1)
+}
+
+const cHandshake = {
+  preencode (state, p) {
+    console.log('preencode', p)
+    c.uint.preencode(state, p ? p.width : 0)
+    c.uint.preencode(state, p ? p.height : 0)
+  },
+  encode (state, p) {
+    console.log('encode', p)
+    c.uint.encode(state, p ? p.width : 0)
+    c.uint.encode(state, p ? p.height : 0)
+  },
+  decode (state) {
+    console.log('decode', state)
+    return {
+      width: c.uint.decode(state),
+      height: c.uint.decode(state)
+    }
+  }
 }
