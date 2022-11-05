@@ -75,7 +75,6 @@ function onConnection (socket) {
     handshake: m.handshake,
     onopen (handshake) {
       if (!handshake.spawn) {
-        // channel.close()
         return
       }
 
@@ -144,7 +143,6 @@ function onresize (data, channel) {
 }
 
 function onallowance (data, channel) {
-  console.log('onallowance', data)
   cleanupAllowance()
 
   const token = Keychain.seed().subarray(0, 8)
