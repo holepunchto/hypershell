@@ -25,7 +25,7 @@ Connect to a P2P shell.
 
 Options:
   -f <filename>      Filename of the client seed key. (default: "~/.hypershell/peer")
-  --allowance [token]  Generates or use a temporary one time password to connect to the server.
+  --allowance [token]  Generate or use a temporary one time password to connect to the server.
 ```
 
 ```shell
