@@ -42,7 +42,7 @@ module.exports = async function (options = {}) {
   function onFirewall (remotePublicKey, remoteHandshakePayload) {
     cleanupAllowance()
 
-    for (const [publicKey, expiry] of allowance) {
+    for (const [publicKey] of allowance) {
       if (remotePublicKey.equals(Buffer.from(publicKey, 'hex'))) {
         console.log('Firewall allowance:', remotePublicKey.toString('hex'))
         allowance.delete(publicKey)
