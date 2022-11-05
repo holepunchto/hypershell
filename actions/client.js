@@ -54,7 +54,6 @@ module.exports = async function (serverPublicKey, options = {}) {
       { encoding: m.allowance }, // one time allowance (request)
       { encoding: m.buffer, onmessage: onallowance } // one time allowance (response)
     ],
-    // + should detect onopen, so if onclose happens without opened then print a message
     onclose () {
       socket.end()
     },
