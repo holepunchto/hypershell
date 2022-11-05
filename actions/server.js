@@ -1,6 +1,7 @@
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
+const Keychain = require('keypear')
 const DHT = require('@hyperswarm/dht')
 const goodbye = require('graceful-goodbye')
 const PTY = require('tt-native')
@@ -11,6 +12,7 @@ const m = require('../messages.js')
 const isWin = os.platform() === 'win32'
 const shellFile = isWin ? 'powershell.exe' : (process.env.SHELL || 'bash')
 const EMPTY = Buffer.alloc(0)
+const allowance = new Map()
 
 module.exports = async function (options = {}) {
   const keyfile = path.resolve(options.f)
@@ -38,6 +40,16 @@ module.exports = async function (options = {}) {
   console.log()
 
   function onFirewall (remotePublicKey, remoteHandshakePayload) {
+    cleanupAllowance()
+
+    for (const [publicKey, expiry] of allowance) {
+      if (remotePublicKey.equals(Buffer.from(publicKey, 'hex'))) {
+        console.log('Firewall allowance:', remotePublicKey.toString('hex'))
+        allowance.delete(publicKey)
+        return false
+      }
+    }
+
     for (const publicKey of readAuthorizedPeers(firewall)) {
       if (remotePublicKey.equals(publicKey)) {
         console.log('Firewall allowed:', remotePublicKey.toString('hex'))
@@ -63,7 +75,7 @@ function onConnection (socket) {
     handshake: m.handshake,
     onopen (handshake) {
       if (!handshake.spawn) {
-        channel.close()
+        // channel.close()
         return
       }
 
@@ -102,6 +114,8 @@ function onConnection (socket) {
       { encoding: c.buffer }, // stderr
       { encoding: c.uint }, // exit code
       { encoding: m.resize, onmessage: onresize } // resize
+      { encoding: m.allowance, onmessage: onallowance }, // one time allowance (request)
+      { encoding: m.buffer } // one time allowance (response)
     ],
     onclose () {
       if (!this.userData) return
@@ -127,6 +141,25 @@ function onstdin (data, channel) {
 function onresize (data, channel) {
   const { pty } = channel.userData
   pty.resize(data.width, data.height)
+}
+
+function onallowance (data, channel) {
+  console.log('onallowance', data)
+  cleanupAllowance()
+
+  const token = Keychain.seed().subarray(0, 8)
+  const seed = Buffer.alloc(32).fill(token, 0, token.length)
+  const keyPair = DHT.keyPair(seed)
+  allowance.set(keyPair.publicKey.toString('hex'), Date.now() + data.expiry)
+  channel.messages[4].send(token)
+}
+
+function cleanupAllowance () {
+  for (const [publicKey, expiry] of allowance) {
+    if (expiry - Date.now() < 0) {
+      allowance.delete(publicKey)
+    }
+  }
 }
 
 function readAuthorizedPeers (filename) {

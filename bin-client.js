@@ -11,6 +11,7 @@ program
   .argument('<server public key>', 'Public key of the server')
   // .argument('<server public key>', 'Public key of the server or absolute path to server public key')
   .option('-f <filename>', 'Filename of the client seed key.', path.join(SHELLDIR, 'peer'))
+  .option('--allowance [token]', 'Generates or use a temporary one time password to connect to the server.')
   // .option('--key <hex or z32>', 'Inline key for the client.')
   // .option('--connect <server public key>', 'Specifies the filename of the server public key')
   .action(require('./actions/client.js'))

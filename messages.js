@@ -59,8 +59,23 @@ const resize = {
   }
 }
 
+const allowance = {
+  preencode (state, r) {
+    c.uint.preencode(state, r.expiry)
+  },
+  encode (state, r) {
+    c.uint.encode(state, r.expiry)
+  },
+  decode (state) {
+    return {
+      expiry: c.uint.decode(state)
+    }
+  }
+}
+
 module.exports = {
   spawn,
   handshake,
-  resize
+  resize,
+  allowance
 }

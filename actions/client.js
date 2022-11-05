@@ -8,9 +8,18 @@ const m = require('../messages.js')
 const { SHELLDIR } = require('../constants.js')
 
 module.exports = async function (serverPublicKey, options = {}) {
-  const keyfile = path.resolve(options.f)
+  let seed
 
-  if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
+  if (typeof options.allowance !== 'string') {
+    const keyfile = options.f ? path.resolve(options.f) : path.join(SHELLDIR, 'peer')
+
+    if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
+
+    seed = Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
+  } else {
+    const token = Buffer.from(options.allowance, 'hex')
+    seed = Buffer.alloc(32).fill(token, 0, token.length)
+  }
 
   for (const peer of readKnownPeers()) {
     if (peer.name === serverPublicKey) {
@@ -20,7 +29,6 @@ module.exports = async function (serverPublicKey, options = {}) {
   }
   serverPublicKey = Buffer.from(serverPublicKey, 'hex')
 
-  const seed = Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
   const keyPair = DHT.keyPair(seed)
 
   const node = new DHT()
@@ -43,11 +51,24 @@ module.exports = async function (serverPublicKey, options = {}) {
       { encoding: c.buffer, onmessage: onstderr }, // stderr
       { encoding: c.uint, onmessage: onexitcode }, // exit code
       { encoding: m.resize } // resize
+      { encoding: m.allowance }, // one time allowance (request)
+      { encoding: m.buffer, onmessage: onallowance } // one time allowance (response)
     ],
+    // + should detect onopen, so if onclose happens without opened then print a message
     onclose () {
       socket.end()
+    },
+    ondestroy () {
+      node.destroy()
     }
   })
+
+  if (options.allowance === true) {
+    console.log('Generating allowance.')
+    channel.open({})
+    channel.messages[3].send({ expiry: 30 * 60 * 1000 })
+    return
+  }
 
   const spawn = parseVariadic(this.rawArgs)
   const [command = '', ...args] = spawn
@@ -77,6 +98,11 @@ module.exports = async function (serverPublicKey, options = {}) {
 
   function onexitcode (code) {
     process.exitCode = code
+  }
+
+  function onallowance (token) {
+    console.log('One time password:', token.toString('hex'))
+    channel.close()
   }
 
   process.stdout.on('resize', function () {
