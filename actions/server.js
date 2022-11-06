@@ -112,7 +112,7 @@ function onConnection (socket) {
       { encoding: c.buffer }, // stdout
       { encoding: c.buffer }, // stderr
       { encoding: c.uint }, // exit code
-      { encoding: m.resize, onmessage: onresize } // resize
+      { encoding: m.resize, onmessage: onresize }, // resize
       { encoding: m.allowance, onmessage: onallowance }, // one time allowance (request)
       { encoding: m.buffer } // one time allowance (response)
     ],

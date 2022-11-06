@@ -50,7 +50,7 @@ module.exports = async function (serverPublicKey, options = {}) {
       { encoding: c.buffer, onmessage: onstdout }, // stdout
       { encoding: c.buffer, onmessage: onstderr }, // stderr
       { encoding: c.uint, onmessage: onexitcode }, // exit code
-      { encoding: m.resize } // resize
+      { encoding: m.resize }, // resize
       { encoding: m.allowance }, // one time allowance (request)
       { encoding: m.buffer, onmessage: onallowance } // one time allowance (response)
     ],
