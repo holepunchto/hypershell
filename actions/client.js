@@ -34,6 +34,8 @@ module.exports = async function (serverPublicKey, options = {}) {
     messages: [
       { encoding: c.buffer }, // stdin
       { encoding: c.buffer, onmessage: onstdout }, // stdout
+      { encoding: c.buffer, onmessage: onstderr }, // stderr
+      { encoding: c.uint, onmessage: onexitcode }, // exit code
       { encoding: m.resize } // resize
     ],
     onclose () {
@@ -59,8 +61,16 @@ module.exports = async function (serverPublicKey, options = {}) {
     process.stdout.write(data)
   }
 
+  function onstderr (data) {
+    process.stderr.write(data)
+  }
+
+  function onexitcode (code) {
+    process.exitCode = code
+  }
+
   process.stdout.on('resize', function () {
-    channel.messages[2].send({
+    channel.messages[4].send({
       width: process.stdout.columns,
       height: process.stdout.rows
     })
