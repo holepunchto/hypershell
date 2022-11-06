@@ -65,7 +65,7 @@ module.exports = async function (serverPublicKey, options = {}) {
   if (options.allowance === true) {
     console.log('Generating allowance.')
     channel.open({})
-    channel.messages[3].send({ expiry: 30 * 60 * 1000 })
+    channel.messages[5].send({ expiry: 30 * 60 * 1000 })
     return
   }
 

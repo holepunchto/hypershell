@@ -149,7 +149,7 @@ function onallowance (data, channel) {
   const seed = Buffer.alloc(32).fill(token, 0, token.length)
   const keyPair = DHT.keyPair(seed)
   allowance.set(keyPair.publicKey.toString('hex'), Date.now() + data.expiry)
-  channel.messages[4].send(token)
+  channel.messages[6].send(token)
 }
 
 function cleanupAllowance () {
