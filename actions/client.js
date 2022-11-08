@@ -8,6 +8,8 @@ const m = require('../messages.js')
 const { SHELLDIR } = require('../constants.js')
 const tar = require('tar-fs')
 
+const EMPTY = Buffer.alloc(0)
+
 module.exports = async function (serverPublicKey, options = {}) {
   const keyfile = path.resolve(options.f)
 
@@ -75,7 +77,7 @@ module.exports = async function (serverPublicKey, options = {}) {
     })
 
     pack.on('end', function () {
-      channel.messages[5].send(Buffer.alloc(0))
+      channel.messages[5].send(EMPTY)
       // channel.close() // + it doesn't reach to send all the data
       // socket.end() // + server is closing the socket to us
     })
