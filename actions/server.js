@@ -69,30 +69,36 @@ function onConnection (socket) {
     handshake: m.handshake,
     onopen (handshake) {
       if (handshake.upload) {
-        const { target, isDirectory } = handshake.upload
+        const { target } = handshake.upload
 
-        const targetDir = isDirectory ? target : path.dirname(target)
-        fs.mkdirSync(targetDir, { recursive: true })
+        this.userData = {
+          upload: { extract: null, target }
+        }
 
-        const extract = tar.extract(targetDir, {
-          readable: true,
-          writable: true,
-          map (header) {
-            if (!isDirectory) header.name = path.basename(target)
-            return header
-          }
-        })
+        return
+      }
 
-        extract.on('error', function (error) {
+      if (handshake.download) {
+        const source = path.resolve(handshake.download.source)
+        const st = fs.lstatSync(source)
+        const isDirectory = st.isDirectory()
+
+        const sourceDir = isDirectory ? source : path.dirname(source)
+        fs.mkdirSync(sourceDir, { recursive: true })
+
+        const pack = tar.pack(source)
+
+        /* pack.once('error', function (error) {
           console.error(error)
           channel.close()
-        })
+        }) */
 
-        extract.on('finish', function () {
-          channel.close()
-        })
+        const header = { isDirectory }
+        channel.messages[6].send(Buffer.from(JSON.stringify(header)))
 
-        this.userData = { extract }
+        pipeToMessage(pack, channel.messages[6])
+
+        this.userData = { pack }
 
         return
       }
@@ -136,7 +142,8 @@ function onConnection (socket) {
       { encoding: c.buffer }, // stderr
       { encoding: c.uint }, // exit code
       { encoding: m.resize, onmessage: onresize }, // resize
-      { encoding: m.buffer, onmessage: onupload } // upload files
+      { encoding: m.buffer, onmessage: onupload }, // upload files
+      { encoding: m.buffer } // download files
     ],
     onclose () {
       if (!this.userData) return
@@ -150,6 +157,9 @@ function onConnection (socket) {
 
       const { extract } = this.userData
       if (extract) extract.destroy()
+
+      const { pack } = this.userData
+      if (pack) pack.destroy()
     }
   })
 
@@ -168,10 +178,77 @@ function onresize (data, channel) {
 }
 
 function onupload (data, channel) {
-  const { extract } = channel.userData
+  const { upload } = channel.userData
 
-  if (!data.length) extract.end()
-  else extract.write(data)
+  if (!upload.extract) {
+    const header = JSON.parse(data.toString())
+    const { isDirectory } = header
+
+    const targetDir = isDirectory ? upload.target : path.dirname(upload.target)
+    fs.mkdirSync(targetDir, { recursive: true })
+
+    const extract = tar.extract(targetDir, {
+      readable: true,
+      writable: true,
+      map (header) {
+        if (!isDirectory) header.name = path.basename(upload.target)
+        return header
+      }
+    })
+
+    extract.on('error', function (error) {
+      console.error(error)
+      channel.close()
+    })
+
+    extract.on('finish', function () {
+      channel.close()
+    })
+
+    upload.extract = extract
+
+    return
+  }
+
+  if (data.length) upload.extract.write(data)
+  else upload.extract.end()
+}
+
+function ondownload (data, channel) {
+  const { download } = channel.userData
+
+  if (!download.extract) {
+    const header = JSON.parse(data.toString())
+    const { isDirectory } = header
+
+    const targetDir = isDirectory ? download.target : path.dirname(download.target)
+    fs.mkdirSync(targetDir, { recursive: true })
+
+    const extract = tar.extract(targetDir, {
+      readable: true,
+      writable: true,
+      map (header) {
+        if (!isDirectory) header.name = path.basename(download.target)
+        return header
+      }
+    })
+
+    extract.on('error', function (error) {
+      console.error(error)
+      channel.close()
+    })
+
+    extract.on('finish', function () {
+      channel.close()
+    })
+
+    download.extract = extract
+
+    return
+  }
+
+  if (data.length) download.extract.write(data)
+  else download.extract.end()
 }
 
 function readAuthorizedPeers (filename) {
@@ -201,4 +278,14 @@ function readAuthorizedPeers (filename) {
 function errorAndExit (message) {
   console.error('Error:', message)
   process.exit(1)
+}
+
+function pipeToMessage (stream, message) {
+  stream.on('data', function (chunk) {
+    message.send(chunk)
+  })
+
+  stream.once('end', function () {
+    message.send(EMPTY)
+  })
 }

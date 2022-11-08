@@ -13,7 +13,8 @@ program
   .option('-f <filename>', 'Filename of the client seed key.', path.join(SHELLDIR, 'peer'))
   .option('--upload-source <source path>', 'Upload a source file from client to target path of the server.')
   .option('--upload-target <absolute target path>', 'Upload a source file from client to target path of the server.')
-
+  .option('--download-source <source path>', 'Download a source file from server to target path of the client.')
+  .option('--download-target <absolute target path>', 'Download a source file from server to target path of the client.')
   // .option('--key <hex or z32>', 'Inline key for the client.')
   // .option('--connect <server public key>', 'Specifies the filename of the server public key')
   .action(require('./actions/client.js'))

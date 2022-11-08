@@ -46,10 +46,16 @@ module.exports = async function (serverPublicKey, options = {}) {
       { encoding: c.buffer, onmessage: onstderr }, // stderr
       { encoding: c.uint, onmessage: onexitcode }, // exit code
       { encoding: m.resize }, // resize
-      { encoding: m.buffer } // upload files
+      { encoding: m.buffer }, // upload files
+      { encoding: m.buffer, onmessage: ondownload } // download files
     ],
     onclose () {
       socket.end()
+
+      if (!this.userData) return
+
+      const { download } = this.userData
+      if (download && download.extract) download.extract.destroy()
     },
     ondestroy () {
       node.destroy()
@@ -64,23 +70,34 @@ module.exports = async function (serverPublicKey, options = {}) {
     const st = fs.lstatSync(source)
 
     channel.open({
-      upload: {
-        target: options.uploadTarget,
-        isDirectory: st.isDirectory()
-      }
+      upload: { target: options.uploadTarget }
     })
+
+    const header = { isDirectory: st.isDirectory() }
+    channel.messages[5].send(Buffer.from(JSON.stringify(header)))
 
     const pack = tar.pack(source)
 
-    pack.on('data', function (chunk) {
-      channel.messages[5].send(chunk)
+    /* pack.once('error', function (error) {
+      console.error(error)
+      channel.close()
+    }) */
+
+    pipeToMessage(pack, channel.messages[5])
+
+    return
+  }
+
+  if (options.downloadSource && options.downloadTarget) {
+    const target = path.resolve(options.downloadTarget)
+
+    channel.open({
+      download: { source: options.downloadSource }
     })
 
-    pack.on('end', function () {
-      channel.messages[5].send(EMPTY)
-      // channel.close() // + it doesn't reach to send all the data
-      // socket.end() // + server is closing the socket to us
-    })
+    channel.userData = {
+      download: { extract: null, target }
+    }
 
     return
   }
@@ -134,6 +151,43 @@ module.exports = async function (serverPublicKey, options = {}) {
   })
 }
 
+function ondownload (data, channel) {
+  const { download } = channel.userData
+
+  if (!download.extract) {
+    const header = JSON.parse(data.toString())
+    const { isDirectory } = header
+
+    const targetDir = isDirectory ? download.target : path.dirname(download.target)
+    fs.mkdirSync(targetDir, { recursive: true })
+
+    const extract = tar.extract(targetDir, {
+      readable: true,
+      writable: true,
+      map (header) {
+        if (!isDirectory) header.name = path.basename(download.target)
+        return header
+      }
+    })
+
+    extract.on('error', function (error) {
+      console.error(error)
+      channel.close()
+    })
+
+    extract.on('finish', function () {
+      channel.close()
+    })
+
+    download.extract = extract
+
+    return
+  }
+
+  if (data.length) download.extract.write(data)
+  else download.extract.end()
+}
+
 function errorAndExit (message) {
   console.error('Error:', message)
   process.exit(1)
@@ -169,4 +223,14 @@ function readKnownPeers () {
     if (error.code === 'ENOENT') return []
     throw error
   }
+}
+
+function pipeToMessage (stream, message) {
+  stream.on('data', function (chunk) {
+    message.send(chunk)
+  })
+
+  stream.once('end', function () {
+    message.send(EMPTY)
+  })
 }

@@ -30,18 +30,21 @@ const handshake = {
     state.end++ // flags
     if (h.spawn) spawn.preencode(state, h.spawn)
     if (h.upload) c.json.preencode(state, h.upload)
+    if (h.download) c.json.preencode(state, h.download)
   },
   encode (state, h) {
-    const flags = (h.spawn ? 1 : 0) | (h.upload ? 2 : 0)
+    const flags = (h.spawn ? 1 : 0) | (h.upload ? 2 : 0) | (h.download ? 4 : 0)
     c.uint.encode(state, flags)
     if (h.spawn) spawn.encode(state, h.spawn)
     if (h.upload) c.json.encode(state, h.upload)
+    if (h.download) c.json.encode(state, h.download)
   },
   decode (state) {
     const flags = c.uint.decode(state)
     return {
       spawn: flags & 1 ? spawn.decode(state) : null,
-      upload: flags & 2 ? c.json.decode(state) : null
+      upload: flags & 2 ? c.json.decode(state) : null,
+      download: flags & 4 ? c.json.decode(state) : null
     }
   }
 }
