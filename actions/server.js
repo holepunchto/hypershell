@@ -83,9 +83,6 @@ function onConnection (socket) {
         const st = fs.lstatSync(source)
         const isDirectory = st.isDirectory()
 
-        const sourceDir = isDirectory ? source : path.dirname(source)
-        fs.mkdirSync(sourceDir, { recursive: true })
-
         const pack = tar.pack(source)
 
         /* pack.once('error', function (error) {
@@ -185,9 +182,7 @@ function onupload (data, channel) {
   if (!upload.extract) {
     const header = JSON.parse(data.toString())
     const { isDirectory } = header
-
     const targetDir = isDirectory ? upload.target : path.dirname(upload.target)
-    fs.mkdirSync(targetDir, { recursive: true })
 
     const extract = tar.extract(targetDir, {
       readable: true,

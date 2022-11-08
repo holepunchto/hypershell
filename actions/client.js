@@ -164,9 +164,7 @@ function ondownload (data, channel) {
   if (!download.extract) {
     const header = JSON.parse(data.toString())
     const { isDirectory } = header
-
     const targetDir = isDirectory ? download.target : path.dirname(download.target)
-    fs.mkdirSync(targetDir, { recursive: true })
 
     const extract = tar.extract(targetDir, {
       readable: true,
