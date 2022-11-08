@@ -112,9 +112,13 @@ function onConnection (socket) {
       { encoding: m.resize, onmessage: onresize } // resize
     ],
     onclose () {
-      if (this.userData) {
-        const { pty } = this.userData
-        pty.kill('SIGKILL')
+      if (!this.userData) return
+
+      const { pty } = this.userData
+      if (pty) {
+        try {
+          pty.kill('SIGKILL')
+        } catch {} // ignore "Process has exited"
       }
     }
   })
