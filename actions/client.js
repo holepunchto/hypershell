@@ -33,6 +33,16 @@ module.exports = async function (serverPublicKey, options = {}) {
   goodbye(() => socket.end(), 1)
   socket.once('close', () => node.destroy())
 
+  socket.on('error', function (error) {
+    if (error.code === 'ECONNRESET') console.error('Connection closed.')
+    else if (error.code === 'ETIMEDOUT') console.error('Connection timed out.')
+    else if (error.code === 'PEER_NOT_FOUND') console.error(error.message)
+    else if (error.code === 'PEER_CONNECTION_FAILED') console.error(error.message, '(probably firewalled)')
+    else console.error(error)
+
+    process.exitCode = 1
+  })
+
   socket.setKeepAlive(5000)
 
   const mux = new Protomux(socket)
@@ -149,16 +159,6 @@ module.exports = async function (serverPublicKey, options = {}) {
       width: process.stdout.columns,
       height: process.stdout.rows
     })
-  })
-
-  socket.on('error', function (error) {
-    if (error.code === 'ECONNRESET') console.error('Connection closed.')
-    else if (error.code === 'ETIMEDOUT') console.error('Connection timed out.')
-    else if (error.code === 'PEER_NOT_FOUND') console.error(error.message)
-    else if (error.code === 'PEER_CONNECTION_FAILED') console.error(error.message, '(probably firewalled)')
-    else console.error(error)
-
-    process.exitCode = 1
   })
 
   socket.once('close', function () {
