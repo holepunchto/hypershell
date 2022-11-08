@@ -49,6 +49,8 @@ hypershell <server public key>
 ```
 
 ## Server setup
+First do a `hypershell-keygen` with the default filename as per client setup.
+
 ```bash
 hypershell-server
 ```
