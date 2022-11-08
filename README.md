@@ -37,38 +37,40 @@ Options:
   -c <comment>   Provides a new comment.
 ```
 
-## Client setup
+## Setup
 First, create a key with the default filename:
 ```bash
 hypershell-keygen
 ```
 
-Now you could connect to servers (they have to allow your public key):
+#### Client
+Now you can connect to servers (they have to allow your public key):
 ```bash
 hypershell <server public key>
 ```
 
-## Server setup
-First do a `hypershell-keygen` with the default filename as per client setup.
-
+#### Server
+If you wanted to, you can also create a server:
 ```bash
 hypershell-server
 ```
 
 `~/.hypershell/firewall` will be automatically created as an empty file.\
-That means, by default all connections are denied.
+That means, all connections are denied by default.
 
 You can allow public keys in real-time by adding them to the firewall list.
 
-## Multiple servers
-You could create another key if you want multiple servers:
+#### Multiple keys
+To have multiple servers, you need multiple keys.
+
+Generate another key:
 ```bash
 hypershell-keygen -f ~/.hypershell/my-server
 ```
 
 Now create a new shell server:
 ```bash
-hypershell-server -f ~/.hypershell/my-server
+hypershell-server -f ~/.hypershell/my-server --firewall ~/.hypershell/my-server-firewall
 ```
 
 ## License
