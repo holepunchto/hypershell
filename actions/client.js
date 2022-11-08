@@ -4,11 +4,10 @@ const DHT = require('@hyperswarm/dht')
 const Protomux = require('protomux')
 const c = require('compact-encoding')
 const goodbye = require('graceful-goodbye')
-const { SHELLDIR } = require('../constants.js')
 const m = require('../messages.js')
 
 module.exports = async function (serverPublicKey, options = {}) {
-  const keyfile = options.f ? path.resolve(options.f) : path.join(SHELLDIR, 'peer')
+  const keyfile = path.resolve(options.f)
 
   if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
 
