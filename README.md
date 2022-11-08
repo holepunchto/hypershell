@@ -23,9 +23,6 @@ Usage: hypershell [options] <server public key>
 
 Connect to a P2P shell.
 
-Arguments:
-  server public key  Public key of the server
-
 Options:
   -f <filename>      Specifies the filename of the client key.
 ```
