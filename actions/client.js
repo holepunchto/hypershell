@@ -99,10 +99,10 @@ module.exports = async function (serverPublicKey, options = {}) {
 
     const pack = tar.pack(source)
 
-    /* pack.once('error', function (error) {
-      console.error(error)
+    pack.once('error', function (error) {
+      console.error(error.message)
       channel.close()
-    }) */
+    })
 
     pipeToMessage(pack, channel.messages[5])
 
