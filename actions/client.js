@@ -51,7 +51,8 @@ module.exports = async function (serverPublicKey, options = {}) {
     }
   })
 
-  process.stdin.setRawMode(true)
+  if (process.stdin.setRawMode) process.stdin.setRawMode(true)
+
   process.stdin.on('data', function (data) {
     channel.messages[0].send(data)
   })
