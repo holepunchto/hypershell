@@ -49,9 +49,6 @@ hypershell <server public key>
 ```
 
 ## Server setup
-This setup is only if you want to create a shell server.\
-If you're just a client, then no need for this.
-
 ```bash
 hypershell-server
 ```
