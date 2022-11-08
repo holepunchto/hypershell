@@ -14,7 +14,10 @@ const shellFile = isWin ? 'powershell.exe' : (process.env.SHELL || 'bash')
 const EMPTY = Buffer.alloc(0)
 
 module.exports = async function (options = {}) {
-  const keyfile = path.resolve(options.f)
+  const keyfile = options.f ? path.resolve(options.f) : path.join(SHELLDIR, 'peer')
+
+  if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
+
   const firewall = options.firewall ? path.resolve(options.firewall) : path.join(SHELLDIR, 'firewall')
 
   if (!options.firewall && !fs.existsSync(firewall)) {
