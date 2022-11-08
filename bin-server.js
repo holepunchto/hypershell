@@ -8,7 +8,7 @@ const program = new Command()
 
 program
   .description('Create a P2P shell server.')
-  .option('-f <filename>', 'Filename of the server key.', path.join(SHELLDIR, 'peer'))
+  .option('-f <filename>', 'Filename of the server seed key.', path.join(SHELLDIR, 'peer'))
   // .option('--key <hex or z32>', 'Inline key for the server.')
   .option('--firewall <filename>', 'Firewall file with a list of public keys allowed to connect.', path.join(SHELLDIR, 'firewall'))
   .action(require('./actions/server.js'))
