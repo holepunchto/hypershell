@@ -83,11 +83,10 @@ module.exports = async function (serverPublicKey, options = {}) {
     else if (error.code === 'PEER_CONNECTION_FAILED') console.error(error.message, '(probably firewalled)')
     else console.error(error)
 
-    process.exit()
+    process.exitCode = 1
   })
 
   socket.once('close', function () {
-    console.error('Connection closed.')
     process.exit()
   })
 }
