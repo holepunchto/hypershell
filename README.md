@@ -14,8 +14,8 @@ Usage: hypershell-server [options]
 Create a P2P shell server.
 
 Options:
-  -f <filename>          Specifies the filename of the server key.
-  --firewall <filename>  Firewall file with a list of public keys allowed to connect.
+  -f <filename>          Specifies the filename of the server key. (default: "~/.hypershell/peer")
+  --firewall <filename>  Firewall file with a list of public keys allowed to connect. (default: "~/.hypershell/firewall")
 ```
 
 ```shell
@@ -24,7 +24,7 @@ Usage: hypershell [options] <server public key>
 Connect to a P2P shell.
 
 Options:
-  -f <filename>      Specifies the filename of the client key.
+  -f <filename>      Specifies the filename of the client key. (default: "~/.hypershell/peer")
 ```
 
 ```shell

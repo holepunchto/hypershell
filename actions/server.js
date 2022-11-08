@@ -14,20 +14,18 @@ const shellFile = isWin ? 'powershell.exe' : (process.env.SHELL || 'bash')
 const EMPTY = Buffer.alloc(0)
 
 module.exports = async function (options = {}) {
-  const keyfile = options.f ? path.resolve(options.f) : path.join(SHELLDIR, 'peer')
+  const keyfile = path.resolve(options.f)
+  const firewall = path.resolve(options.firewall)
 
   if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
 
-  const firewall = options.firewall ? path.resolve(options.firewall) : path.join(SHELLDIR, 'firewall')
-
-  if (!options.firewall && !fs.existsSync(firewall)) {
-    console.log('Creating default firewall', firewall)
+  if (!fs.existsSync(firewall)) {
+    console.log('Notice: creating default firewall', firewall)
     fs.mkdirSync(path.dirname(firewall), { recursive: true })
     fs.writeFileSync(firewall, '', { flag: 'wx' })
   }
 
   if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
-  if (!fs.existsSync(firewall)) console.error('Warning: firewall file does not exists: ' + firewall)
 
   const seed = Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
   const keyPair = DHT.keyPair(seed)
