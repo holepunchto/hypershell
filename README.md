@@ -52,20 +52,25 @@ hypershell <server public key>
 This setup is only if you want to create a shell server.\
 If you're just a client, then no need for this.
 
-To be organized, create another key that represents the server:
 ```bash
-hypershell-keygen -f ~/.hypershell/my-server
-```
-
-Now create the shell server:
-```bash
-hypershell-server -f ~/.hypershell/my-server
+hypershell-server
 ```
 
 `~/.hypershell/firewall` will be automatically created as an empty file.\
 That means, by default all connections are denied.
 
 You can allow public keys in real-time by adding them to the firewall list.
+
+## Multiple servers
+You could create another key if you want multiple servers:
+```bash
+hypershell-keygen -f ~/.hypershell/my-server
+```
+
+Now create a new shell server:
+```bash
+hypershell-server -f ~/.hypershell/my-server
+```
 
 ## License
 MIT
