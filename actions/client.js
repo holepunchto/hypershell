@@ -67,12 +67,22 @@ module.exports = async function (serverPublicKey, options = {}) {
   const [command = '', ...args] = spawn
 
   if (options.uploadSource && options.uploadTarget) {
-    const source = path.resolve(options.uploadSource)
-    const st = fs.lstatSync(source)
-
     channel.open({
       upload: { target: options.uploadTarget }
     })
+
+    const source = path.resolve(options.uploadSource)
+    let st
+    try {
+      st = fs.lstatSync(source)
+    } catch (error) {
+      if (error.code === 'ENOENT') console.log(source + ': No such file or directory')
+      else console.error(error.message)
+
+      // channel.close()
+      socket.destroy()
+      return
+    }
 
     const header = { isDirectory: st.isDirectory() }
     channel.messages[5].send(Buffer.from(JSON.stringify(header)))
@@ -161,7 +171,16 @@ function ondownload (data, channel) {
 
   if (!download.extract) {
     const header = JSON.parse(data.toString())
-    const { isDirectory } = header
+    const { error, isDirectory } = header
+
+    if (error) {
+      if (error.code === 'ENOENT') console.log('hypershell-server:', error.path + ': No such file or directory')
+      else console.error(error.message)
+
+      channel.close()
+      return
+    }
+
     const targetDir = isDirectory ? download.target : path.dirname(download.target)
 
     const extract = tar.extract(targetDir, {

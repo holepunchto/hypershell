@@ -80,8 +80,18 @@ function onConnection (socket) {
 
       if (handshake.download) {
         const source = path.resolve(handshake.download.source)
-        const st = fs.lstatSync(source)
-        const isDirectory = st.isDirectory()
+
+        let st
+        try {
+          st = fs.lstatSync(source)
+        } catch (error) {
+          console.error(error.message) // extra debugging
+
+          const header = { error: { ...error, message: error.message } }
+          channel.messages[6].send(Buffer.from(JSON.stringify(header)))
+          channel.close()
+          return
+        }
 
         const pack = tar.pack(source)
 
@@ -90,7 +100,7 @@ function onConnection (socket) {
           channel.close()
         }) */
 
-        const header = { isDirectory }
+        const header = { isDirectory: st.isDirectory() }
         channel.messages[6].send(Buffer.from(JSON.stringify(header)))
 
         pipeToMessage(pack, channel.messages[6])
