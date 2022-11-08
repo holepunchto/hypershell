@@ -44,7 +44,7 @@ module.exports = async function (serverPublicKey, options = {}) {
 
   channel.open({
     spawn: {
-      file: '',
+      file: options.command || '',
       args: [],
       width: process.stdout.columns,
       height: process.stdout.rows
