@@ -85,8 +85,6 @@ function onConnection (socket) {
         try {
           st = fs.lstatSync(source)
         } catch (error) {
-          console.error(error.message) // extra debugging
-
           const header = { error: { ...error, message: error.message } }
           channel.messages[6].send(Buffer.from(JSON.stringify(header)))
           channel.close()
