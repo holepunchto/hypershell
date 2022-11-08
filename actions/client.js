@@ -56,6 +56,9 @@ module.exports = async function (serverPublicKey, options = {}) {
 
       const { download } = this.userData
       if (download && download.extract) download.extract.destroy()
+
+      const { upload } = this.userData
+      if (upload && upload.pack) upload.pack.destroy()
     },
     ondestroy () {
       node.destroy()
@@ -84,6 +87,10 @@ module.exports = async function (serverPublicKey, options = {}) {
     }) */
 
     pipeToMessage(pack, channel.messages[5])
+
+    this.userData = {
+      upload: { pack }
+    }
 
     return
   }

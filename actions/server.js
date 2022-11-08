@@ -98,7 +98,9 @@ function onConnection (socket) {
 
         pipeToMessage(pack, channel.messages[6])
 
-        this.userData = { pack }
+        this.userData = {
+          download: { pack }
+        }
 
         return
       }
@@ -155,11 +157,11 @@ function onConnection (socket) {
         } catch {} // ignore "Process has exited"
       }
 
-      const { extract } = this.userData
-      if (extract) extract.destroy()
+      const { upload } = this.userData
+      if (upload && upload.extract) upload.extract.destroy()
 
-      const { pack } = this.userData
-      if (pack) pack.destroy()
+      const { download } = this.userData
+      if (download && download.pack) download.pack.destroy()
     }
   })
 
