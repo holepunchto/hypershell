@@ -36,6 +36,7 @@ module.exports = async function (serverPublicKey, options = {}) {
 
   const socket = node.connect(serverPublicKey, { keyPair })
   goodbye(() => socket.end(), 1)
+  socket.once('close', () => node.destroy())
 
   socket.setKeepAlive(5000)
 
@@ -56,9 +57,6 @@ module.exports = async function (serverPublicKey, options = {}) {
     ],
     onclose () {
       socket.end()
-    },
-    ondestroy () {
-      node.destroy()
     }
   })
 
