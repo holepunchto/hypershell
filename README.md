@@ -14,7 +14,7 @@ Usage: hypershell-server [options]
 Create a P2P shell server.
 
 Options:
-  -f <filename>          Specifies the filename of the server seed key. (default: "~/.hypershell/peer")
+  -f <filename>          Filename of the server seed key. (default: "~/.hypershell/peer")
   --firewall <filename>  Firewall file with a list of public keys allowed to connect. (default: "~/.hypershell/firewall")
 ```
 
@@ -24,7 +24,7 @@ Usage: hypershell [options] <server public key>
 Connect to a P2P shell.
 
 Options:
-  -f <filename>      Specifies the filename of the client seed key. (default: "~/.hypershell/peer")
+  -f <filename>      Filename of the client seed key. (default: "~/.hypershell/peer")
 ```
 
 ```shell
@@ -33,7 +33,7 @@ Usage: hypershell-keygen [options]
 Create keys of type ed25519 for use by hypercore-protocol.
 
 Options:
-  -f <filename>  Specifies the filename of the seed key file.
+  -f <filename>  Filename of the seed key file.
   -c <comment>   Provides a new comment.
 ```
 
