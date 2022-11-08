@@ -70,7 +70,6 @@ function onConnection (socket) {
     onopen (handshake) {
       if (handshake.upload) {
         const { target, isDirectory } = handshake.upload
-        console.log('handshake upload', { target, isDirectory })
 
         const targetDir = isDirectory ? target : path.dirname(target)
         fs.mkdirSync(targetDir, { recursive: true })
@@ -79,19 +78,17 @@ function onConnection (socket) {
           readable: true,
           writable: true,
           map (header) {
-            console.log('Extracting build:', { type: header.type, name: header.name })
             if (!isDirectory) header.name = path.basename(target)
             return header
           }
         })
 
-        extract.on('error', function (err) {
-          console.log('Build extraction failed:', err)
+        extract.on('error', function (error) {
+          console.error(error)
           channel.close()
         })
 
         extract.on('finish', function () {
-          console.log('Build extraction complete')
           channel.close()
         })
 
@@ -142,8 +139,6 @@ function onConnection (socket) {
       { encoding: m.buffer, onmessage: onupload } // upload files
     ],
     onclose () {
-      console.log('onclose')
-
       if (!this.userData) return
 
       const { pty } = this.userData
@@ -174,7 +169,6 @@ function onresize (data, channel) {
 
 function onupload (data, channel) {
   const { extract } = channel.userData
-  console.log('onupload', data.length)
 
   if (!data.length) extract.end()
   else extract.write(data)

@@ -58,11 +58,8 @@ module.exports = async function (serverPublicKey, options = {}) {
   const [command = '', ...args] = spawn
 
   if (options.uploadSource && options.uploadTarget) {
-    console.log('uploadSource', options.uploadSource)
-    console.log('uploadTarget', options.uploadTarget)
-
-    const uploadSource = path.resolve(options.uploadSource)
-    const st = fs.lstatSync(uploadSource)
+    const source = path.resolve(options.uploadSource)
+    const st = fs.lstatSync(source)
 
     channel.open({
       upload: {
@@ -71,20 +68,13 @@ module.exports = async function (serverPublicKey, options = {}) {
       }
     })
 
-    const pack = tar.pack(uploadSource, {
-      map: function (header) {
-        console.log('tar pack header', header.type, header.name)
-        return header
-      }
-    })
+    const pack = tar.pack(source)
 
     pack.on('data', function (chunk) {
-      console.log('stream data', chunk.length)
       channel.messages[5].send(chunk)
     })
 
     pack.on('end', function () {
-      console.log('tar pack ended')
       channel.messages[5].send(Buffer.alloc(0))
       // channel.close() // + it doesn't reach to send all the data
       // socket.end() // + server is closing the socket to us
