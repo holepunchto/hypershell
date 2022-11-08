@@ -60,7 +60,7 @@ That means, all connections are denied by default.
 
 You can allow public keys in real-time by adding them to the firewall list.
 
-#### Multiple keys
+## Multiple keys
 To have multiple servers, you need multiple keys.
 
 Generate another key:
