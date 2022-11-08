@@ -6,6 +6,7 @@ const c = require('compact-encoding')
 const goodbye = require('graceful-goodbye')
 const m = require('../messages.js')
 const { SHELLDIR } = require('../constants.js')
+const tar = require('tar-fs')
 
 module.exports = async function (serverPublicKey, options = {}) {
   const keyfile = path.resolve(options.f)
@@ -42,15 +43,55 @@ module.exports = async function (serverPublicKey, options = {}) {
       { encoding: c.buffer, onmessage: onstdout }, // stdout
       { encoding: c.buffer, onmessage: onstderr }, // stderr
       { encoding: c.uint, onmessage: onexitcode }, // exit code
-      { encoding: m.resize } // resize
+      { encoding: m.resize }, // resize
+      { encoding: m.buffer } // upload files
     ],
     onclose () {
       socket.end()
+    },
+    ondestroy () {
+      node.destroy()
     }
   })
 
   const spawn = parseVariadic(this.rawArgs)
   const [command = '', ...args] = spawn
+
+  if (options.uploadSource && options.uploadTarget) {
+    console.log('uploadSource', options.uploadSource)
+    console.log('uploadTarget', options.uploadTarget)
+
+    const uploadSource = path.resolve(options.uploadSource)
+    const st = fs.lstatSync(uploadSource)
+
+    channel.open({
+      upload: {
+        target: options.uploadTarget,
+        isDirectory: st.isDirectory()
+      }
+    })
+
+    const pack = tar.pack(uploadSource, {
+      map: function (header) {
+        console.log('tar pack header', header.type, header.name)
+        return header
+      }
+    })
+
+    pack.on('data', function (chunk) {
+      console.log('stream data', chunk.length)
+      channel.messages[5].send(chunk)
+    })
+
+    pack.on('end', function () {
+      console.log('tar pack ended')
+      channel.messages[5].send(Buffer.alloc(0))
+      // channel.close() // + it doesn't reach to send all the data
+      // socket.end() // + server is closing the socket to us
+    })
+
+    return
+  }
 
   channel.open({
     spawn: {

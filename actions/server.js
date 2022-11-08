@@ -8,6 +8,7 @@ const Protomux = require('protomux')
 const c = require('compact-encoding')
 const m = require('../messages.js')
 const readFile = require('read-file-live')
+const tar = require('tar-fs')
 
 const isWin = os.platform() === 'win32'
 const shellFile = isWin ? 'powershell.exe' : (process.env.SHELL || 'bash')
@@ -67,8 +68,39 @@ function onConnection (socket) {
     id: null,
     handshake: m.handshake,
     onopen (handshake) {
+      if (handshake.upload) {
+        const { target, isDirectory } = handshake.upload
+        console.log('handshake upload', { target, isDirectory })
+
+        const targetDir = isDirectory ? target : path.dirname(target)
+        fs.mkdirSync(targetDir, { recursive: true })
+
+        const extract = tar.extract(targetDir, {
+          readable: true,
+          writable: true,
+          map (header) {
+            console.log('Extracting build:', { type: header.type, name: header.name })
+            if (!isDirectory) header.name = path.basename(target)
+            return header
+          }
+        })
+
+        extract.on('error', function (err) {
+          console.log('Build extraction failed:', err)
+          channel.close()
+        })
+
+        extract.on('finish', function () {
+          console.log('Build extraction complete')
+          channel.close()
+        })
+
+        this.userData = { extract }
+
+        return
+      }
+
       if (!handshake.spawn) {
-        channel.close()
         return
       }
 
@@ -106,9 +138,12 @@ function onConnection (socket) {
       { encoding: c.buffer }, // stdout
       { encoding: c.buffer }, // stderr
       { encoding: c.uint }, // exit code
-      { encoding: m.resize, onmessage: onresize } // resize
+      { encoding: m.resize, onmessage: onresize }, // resize
+      { encoding: m.buffer, onmessage: onupload } // upload files
     ],
     onclose () {
+      console.log('onclose')
+
       if (!this.userData) return
 
       const { pty } = this.userData
@@ -117,6 +152,9 @@ function onConnection (socket) {
           pty.kill('SIGKILL')
         } catch {} // ignore "Process has exited"
       }
+
+      const { extract } = this.userData
+      if (extract) extract.destroy()
     }
   })
 
@@ -132,6 +170,14 @@ function onstdin (data, channel) {
 function onresize (data, channel) {
   const { pty } = channel.userData
   pty.resize(data.width, data.height)
+}
+
+function onupload (data, channel) {
+  const { extract } = channel.userData
+  console.log('onupload', data.length)
+
+  if (!data.length) extract.end()
+  else extract.write(data)
 }
 
 function readAuthorizedPeers (filename) {
