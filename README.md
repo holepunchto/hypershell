@@ -73,7 +73,7 @@ Now create a new shell server:
 hypershell-server -f ~/.hypershell/my-server --firewall ~/.hypershell/my-server-firewall
 ```
 
-The client also accepts `-f` in case you needed.
+The client also accepts `-f` in case you need it.
 
 ## License
 MIT
