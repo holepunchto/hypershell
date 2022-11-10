@@ -180,7 +180,7 @@ function onConnection (socket) {
       pack.once('end', () => download.messages[2].send(EMPTY))
     },
     messages: [
-      { encoding: c.json }, // header
+      { encoding: m.downloadHeader }, // header
       { encoding: m.error }, // errors
       { encoding: c.raw } // data
     ],

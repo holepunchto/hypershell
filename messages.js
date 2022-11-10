@@ -56,6 +56,20 @@ const handshakeDownload = {
   }
 }
 
+const downloadHeader = {
+  preencode (state, d) {
+    c.bool.preencode(state, d.isDirectory)
+  },
+  encode (state, d) {
+    c.bool.encode(state, d.isDirectory)
+  },
+  decode (state) {
+    return {
+      isDirectory: c.bool.decode(state)
+    }
+  }
+}
+
 const error = {
   preencode (state, e) {
     c.string.preencode(state, e.code || '')
@@ -97,6 +111,7 @@ module.exports = {
   handshakeSpawn,
   handshakeUpload,
   handshakeDownload,
+  downloadHeader,
   error,
   resize
 }

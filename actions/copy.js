@@ -80,8 +80,8 @@ module.exports = async function (sourcePath, targetPath, options = {}) {
       id: null,
       handshake: m.handshakeDownload,
       messages: [
-        { encoding: c.json, onmessage: ondownloadheader }, // header
-        { encoding: c.json, onmessage: ondownloaderror }, // errors
+        { encoding: m.downloadHeader, onmessage: ondownloadheader }, // header
+        { encoding: m.error, onmessage: ondownloaderror }, // errors
         { encoding: c.raw, onmessage: ondownload } // data
       ],
       onclose () {
