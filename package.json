@@ -6,6 +6,7 @@
   "bin": {
     "hypershell-server": "./bin-server.js",
     "hypershell": "./bin-client.js",
+    "hypershell-copy": "./bin-copy.js",
     "hypershell-keygen": "./bin-keygen.js"
   },
   "scripts": {

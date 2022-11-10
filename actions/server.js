@@ -68,49 +68,8 @@ function onConnection (socket) {
     id: null,
     handshake: m.handshake,
     onopen (handshake) {
-      if (handshake.upload) {
-        const { target } = handshake.upload
-
-        this.userData = {
-          upload: { extract: null, target }
-        }
-
-        return
-      }
-
-      if (handshake.download) {
-        const source = path.resolve(handshake.download.source)
-
-        let st
-        try {
-          st = fs.lstatSync(source)
-        } catch (error) {
-          const header = { error: { ...error, message: error.message } }
-          channel.messages[6].send(Buffer.from(JSON.stringify(header)))
-          channel.close()
-          return
-        }
-
-        const pack = tar.pack(source)
-
-        pack.once('error', function (error) {
-          console.error(error.message)
-          channel.close()
-        })
-
-        const header = { isDirectory: st.isDirectory() }
-        channel.messages[6].send(Buffer.from(JSON.stringify(header)))
-
-        pipeToMessage(pack, channel.messages[6])
-
-        this.userData = {
-          download: { pack }
-        }
-
-        return
-      }
-
       if (!handshake.spawn) {
+        channel.close()
         return
       }
 
@@ -161,6 +120,66 @@ function onConnection (socket) {
           pty.kill('SIGKILL')
         } catch {} // ignore "Process has exited"
       }
+    }
+  })
+
+  channel.open({})
+
+  const copy = mux.createChannel({
+    protocol: 'hypershell-copy',
+    id: null,
+    handshake: m.handshake,
+    onopen (handshake) {
+      if (handshake.upload) {
+        const { target } = handshake.upload
+
+        this.userData = {
+          upload: { extract: null, target }
+        }
+
+        return
+      }
+
+      if (handshake.download) {
+        const source = path.resolve(handshake.download.source)
+
+        let st
+        try {
+          st = fs.lstatSync(source)
+        } catch (error) {
+          const header = { error: { ...error, message: error.message } }
+          copy.messages[1].send(Buffer.from(JSON.stringify(header)))
+          copy.close()
+          return
+        }
+
+        const pack = tar.pack(source)
+
+        pack.once('error', function (error) {
+          console.error(error.message)
+          copy.close()
+        })
+
+        const header = { isDirectory: st.isDirectory() }
+        copy.messages[1].send(Buffer.from(JSON.stringify(header)))
+
+        pipeToMessage(pack, copy.messages[1])
+
+        this.userData = {
+          download: { pack }
+        }
+
+        return
+      }
+
+      copy.close()
+    },
+    messages: [
+      { encoding: m.buffer, onmessage: onupload }, // upload files
+      { encoding: m.buffer } // download files
+    ],
+    onclose () {
+      if (!this.userData) return
 
       const { upload } = this.userData
       if (upload && upload.extract) upload.extract.destroy()
@@ -170,7 +189,7 @@ function onConnection (socket) {
     }
   })
 
-  channel.open({})
+  copy.open({})
 }
 
 function onstdin (data, channel) {
