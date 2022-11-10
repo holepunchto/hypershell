@@ -42,10 +42,13 @@ module.exports = async function (serverPublicKey, options = {}) {
     }
   })
 
+  const spawn = parseVariadic(this.rawArgs)
+  const [command = '', ...args] = spawn
+
   channel.open({
     spawn: {
-      file: options.command || '',
-      args: [],
+      file: command || '',
+      args: args || [],
       width: process.stdout.columns,
       height: process.stdout.rows
     }
@@ -94,4 +97,10 @@ module.exports = async function (serverPublicKey, options = {}) {
 function errorAndExit (message) {
   console.error('Error:', message)
   process.exit(1)
+}
+
+function parseVariadic (rawArgs) {
+  const index = rawArgs.indexOf('--')
+  const variadic = index === -1 ? null : rawArgs.splice(index + 1)
+  return variadic || []
 }
