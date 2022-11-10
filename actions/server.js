@@ -22,7 +22,7 @@ module.exports = async function (options = {}) {
   if (!fs.existsSync(firewall)) {
     console.log('Notice: creating default firewall', firewall)
     fs.mkdirSync(path.dirname(firewall), { recursive: true })
-    fs.writeFileSync(firewall, '', { flag: 'wx' })
+    fs.writeFileSync(firewall, '# <public key>\n', { flag: 'wx' })
   }
 
   if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')

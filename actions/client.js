@@ -5,12 +5,20 @@ const Protomux = require('protomux')
 const c = require('compact-encoding')
 const goodbye = require('graceful-goodbye')
 const m = require('../messages.js')
+const { SHELLDIR } = require('../constants.js')
 
 module.exports = async function (serverPublicKey, options = {}) {
   const keyfile = path.resolve(options.f)
 
   if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
 
+  const knownPeers = readKnownPeers()
+  for (const peer of knownPeers) {
+    if (peer.name === serverPublicKey) {
+      serverPublicKey = peer.publicKey
+      break
+    }
+  }
   serverPublicKey = Buffer.from(serverPublicKey, 'hex')
 
   const seed = Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
@@ -103,4 +111,28 @@ function parseVariadic (rawArgs) {
   const index = rawArgs.indexOf('--')
   const variadic = index === -1 ? null : rawArgs.splice(index + 1)
   return variadic || []
+}
+
+function readKnownPeers () {
+  const filename = path.join(SHELLDIR, 'known_peers')
+
+  if (!fs.existsSync(filename)) {
+    console.log('Notice: creating default known peers', filename)
+    fs.mkdirSync(path.dirname(filename), { recursive: true })
+    fs.writeFileSync(filename, '# <name> <public key>\n', { flag: 'wx' })
+  }
+
+  try {
+    return fs.readFileSync(filename, 'utf8')
+      .split('\n')
+      .map(line => {
+        line = line.replace(/\s\s+/g, ' ')
+        return line.match(/(.*?) ([a-zA-Z0-9]*)/i)
+      })
+      .filter(m => m)
+      .map(m => ({ name: m[1], publicKey: m[2] }))
+  } catch (error) {
+    if (error.code === 'ENOENT') return []
+    throw error
+  }
 }
