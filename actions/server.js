@@ -52,12 +52,12 @@ module.exports = async function (options = {}) {
 
     for (const publicKey of readAuthorizedPeers(firewall)) {
       if (remotePublicKey.equals(publicKey)) {
-        console.log('firewall allowed', remotePublicKey.toString('hex'))
+        console.log('Firewall allowed:', remotePublicKey.toString('hex'))
         return false
       }
     }
 
-    console.log('firewall denied', remotePublicKey.toString('hex'))
+    console.log('Firewall denied:', remotePublicKey.toString('hex'))
     return true
   }
 }
