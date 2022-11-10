@@ -125,7 +125,7 @@ function readKnownPeers () {
     return fs.readFileSync(filename, 'utf8')
       .split('\n')
       .map(line => {
-        line = line.replace(/\s\s+/g, ' ').trim()
+        line = line.replace(/\s+/g, ' ').trim()
         if (line[0] === '#') return ''
         return line.match(/(.*?) ([a-zA-Z0-9]*)/i)
       })
