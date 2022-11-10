@@ -12,8 +12,7 @@ module.exports = async function (serverPublicKey, options = {}) {
 
   if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
 
-  const knownPeers = readKnownPeers()
-  for (const peer of knownPeers) {
+  for (const peer of readKnownPeers()) {
     if (peer.name === serverPublicKey) {
       serverPublicKey = peer.publicKey
       break
