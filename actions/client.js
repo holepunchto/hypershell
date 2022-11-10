@@ -131,7 +131,8 @@ function readKnownPeers () {
         line = line.replace(/\s+/g, ' ').trim()
         line = line.replace(/#.*$/, '').trim()
         const i = line.indexOf(' ')
-        if (i > -1) return [line.slice(0, i), line.slice(i + 1)]
+        if (i === -1) return null
+        return [line.slice(0, i), line.slice(i + 1)]
       })
       .filter(m => m && m[0] && m[1])
       .map(m => ({ name: m[0], publicKey: m[1] }))
