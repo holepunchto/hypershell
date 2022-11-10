@@ -38,9 +38,7 @@ module.exports = async function (options = {}) {
   console.log()
 
   function onFirewall (remotePublicKey, remoteHandshakePayload) {
-    const publicKeys = readAuthorizedPeers(firewall)
-
-    for (const publicKey of publicKeys) {
+    for (const publicKey of readAuthorizedPeers(firewall)) {
       if (remotePublicKey.equals(publicKey)) {
         console.log('Firewall allowed:', remotePublicKey.toString('hex'))
         return false
