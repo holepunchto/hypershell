@@ -64,7 +64,6 @@ module.exports = async function (sourcePath, targetPath, options = {}) {
       if (error.code === 'ENOENT') console.log(source + ': No such file or directory')
       else console.error(error.message)
 
-      // channel.close()
       socket.destroy()
       return
     }
