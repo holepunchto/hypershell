@@ -125,10 +125,11 @@ function readKnownPeers () {
     return fs.readFileSync(filename, 'utf8')
       .split('\n')
       .map(line => {
-        line = line.replace(/\s\s+/g, ' ')
+        line = line.replace(/\s\s+/g, ' ').trim()
+        if (line[0] === '#') return ''
         return line.match(/(.*?) ([a-zA-Z0-9]*)/i)
       })
-      .filter(m => m)
+      .filter(m => m && m[1] && m[2])
       .map(m => ({ name: m[1], publicKey: m[2] }))
   } catch (error) {
     if (error.code === 'ENOENT') return []

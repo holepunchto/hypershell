@@ -141,8 +141,12 @@ function readAuthorizedPeers (filename) {
   try {
     return fs.readFileSync(filename, 'utf8')
       .split('\n')
-      .map(line => line.match(/([a-zA-Z0-9]*)/i))
-      .filter(m => m)
+      .map(line => {
+        line = line.replace(/\s\s+/g, ' ').trim()
+        if (line[0] === '#') return ''
+        return line.match(/([a-zA-Z0-9]*)/i)
+      })
+      .filter(m => m && m[1])
       .map(m => m[1])
       .map(v => Buffer.from(v, 'hex'))
   } catch (error) {
