@@ -7,8 +7,6 @@ const goodbye = require('graceful-goodbye')
 const m = require('../messages.js')
 const { SHELLDIR } = require('../constants.js')
 
-const EMPTY = Buffer.alloc(0)
-
 module.exports = async function (serverPublicKey, options = {}) {
   const keyfile = path.resolve(options.f)
 
