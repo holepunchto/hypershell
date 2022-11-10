@@ -63,41 +63,36 @@ function onConnection (socket) {
 
   const mux = new Protomux(socket)
 
-  const channel = mux.createChannel({
+  const spawn = mux.createChannel({
     protocol: 'hypershell',
     id: null,
-    handshake: m.handshakeShell,
+    handshake: m.handshakeSpawn,
     onopen (handshake) {
-      if (!handshake.spawn) {
-        channel.close()
-        return
-      }
-
       let pty
       try {
-        pty = PTY.spawn(handshake.spawn.file || shellFile, handshake.spawn.args, {
-          cwd: process.env.HOME,
+        pty = PTY.spawn(handshake.file || shellFile, handshake.args, {
+          cwd: os.homedir(),
           env: process.env,
-          width: handshake.spawn.width,
-          height: handshake.spawn.height
+          width: handshake.width,
+          height: handshake.height
         })
       } catch (error) {
-        channel.messages[3].send(1)
-        channel.messages[2].send(Buffer.from(error.toString() + '\n'))
-        channel.close()
+        spawn.messages[3].send(1)
+        spawn.messages[2].send(Buffer.from(error.toString() + '\n'))
+        spawn.close()
         return
       }
 
       pty.on('data', function (data) {
-        channel.messages[1].send(data)
+        spawn.messages[1].send(data)
       })
 
       pty.once('exit', function (code) {
-        channel.messages[3].send(code)
+        spawn.messages[3].send(code)
       })
 
       pty.once('close', function () {
-        channel.close()
+        spawn.close()
       })
 
       this.userData = { pty }
@@ -121,73 +116,82 @@ function onConnection (socket) {
     }
   })
 
-  channel.open({})
-
-  const copy = mux.createChannel({
-    protocol: 'hypershell-copy',
+  const upload = mux.createChannel({
+    protocol: 'hypershell-upload',
     id: null,
-    handshake: m.handshakeCopy,
+    handshake: m.handshakeUpload,
     onopen (handshake) {
-      if (handshake.upload) {
-        const { target } = handshake.upload
+      const { target, isDirectory } = handshake
 
-        this.userData = {
-          upload: { extract: null, target }
+      const dir = isDirectory ? target : path.dirname(target)
+      const extract = tar.extract(dir, {
+        readable: true,
+        writable: true,
+        map (header) {
+          if (!isDirectory) header.name = path.basename(target)
+          return header
         }
+      })
 
-        return
-      }
+      extract.once('error', function (error) {
+        upload.messages[1].send(error)
+        upload.close()
+      })
 
-      if (handshake.download) {
-        const source = path.resolve(handshake.download.source)
+      extract.once('finish', () => upload.close())
 
-        let st
-        try {
-          st = fs.lstatSync(source)
-        } catch (error) {
-          const header = { error: { ...error, message: error.message } }
-          copy.messages[1].send(Buffer.from(JSON.stringify(header)))
-          copy.close()
-          return
-        }
-
-        const pack = tar.pack(source)
-
-        pack.once('error', function (error) {
-          console.error(error.message)
-          copy.close()
-        })
-
-        const header = { isDirectory: st.isDirectory() }
-        copy.messages[1].send(Buffer.from(JSON.stringify(header)))
-
-        pipeToMessage(pack, copy.messages[1])
-
-        this.userData = {
-          download: { pack }
-        }
-
-        return
-      }
-
-      copy.close()
+      upload.userData = { extract }
     },
     messages: [
-      { encoding: c.buffer, onmessage: onupload }, // upload files
-      { encoding: c.buffer } // download files
+      null, // no header
+      { encoding: m.error }, // errors
+      { encoding: c.raw, onmessage: onupload } // data
     ],
     onclose () {
-      if (!this.userData) return
-
-      const { upload } = this.userData
-      if (upload && upload.extract) upload.extract.destroy()
-
-      const { download } = this.userData
-      if (download && download.pack) download.pack.destroy()
+      if (upload.userData) upload.userData.extract.destroy()
     }
   })
 
-  copy.open({})
+  const download = mux.createChannel({
+    protocol: 'hypershell-download',
+    id: null,
+    handshake: m.handshakeDownload,
+    onopen (handshake) {
+      const { source } = handshake
+
+      try {
+        const st = fs.lstatSync(source)
+        download.messages[0].send({ isDirectory: st.isDirectory() })
+      } catch (error) {
+        download.messages[1].send(error)
+        download.close()
+        return
+      }
+
+      const pack = tar.pack(source)
+      download.userData = { pack }
+
+      pack.once('error', function (error) {
+        download.messages[1].send(error)
+        download.close()
+      })
+
+      pack.on('data', (chunk) => download.messages[2].send(chunk))
+      pack.once('end', () => download.messages[2].send(EMPTY))
+    },
+    messages: [
+      { encoding: c.json }, // header
+      { encoding: m.error }, // errors
+      { encoding: c.raw } // data
+    ],
+    onclose () {
+      if (download.userData) download.userData.pack.destroy()
+    }
+  })
+
+  spawn.open({})
+  upload.open({})
+  download.open({})
 }
 
 function onstdin (data, channel) {
@@ -202,38 +206,9 @@ function onresize (data, channel) {
 }
 
 function onupload (data, channel) {
-  const { upload } = channel.userData
-
-  if (!upload.extract) {
-    const header = JSON.parse(data.toString())
-    const { isDirectory } = header
-    const targetDir = isDirectory ? upload.target : path.dirname(upload.target)
-
-    const extract = tar.extract(targetDir, {
-      readable: true,
-      writable: true,
-      map (header) {
-        if (!isDirectory) header.name = path.basename(upload.target)
-        return header
-      }
-    })
-
-    extract.on('error', function (error) {
-      console.error(error)
-      channel.close()
-    })
-
-    extract.on('finish', function () {
-      channel.close()
-    })
-
-    upload.extract = extract
-
-    return
-  }
-
-  if (data) upload.extract.write(data)
-  else upload.extract.end()
+  const { extract } = channel.userData
+  if (data.length) extract.write(data)
+  else extract.end()
 }
 
 function readAuthorizedPeers (filename) {
@@ -263,14 +238,4 @@ function readAuthorizedPeers (filename) {
 function errorAndExit (message) {
   console.error('Error:', message)
   process.exit(1)
-}
-
-function pipeToMessage (stream, message) {
-  stream.on('data', function (chunk) {
-    message.send(chunk)
-  })
-
-  stream.once('end', function () {
-    message.send(EMPTY)
-  })
 }

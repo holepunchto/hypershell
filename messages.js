@@ -25,7 +25,7 @@ const spawn = {
   }
 }
 
-const handshakeShell = {
+const handshakeSpawn = {
   preencode (state, h) {
     state.end++ // flags
     if (h.spawn) spawn.preencode(state, h.spawn)
@@ -43,23 +43,53 @@ const handshakeShell = {
   }
 }
 
-const handshakeCopy = {
-  preencode (state, h) {
-    state.end++ // flags
-    if (h.upload) c.json.preencode(state, h.upload)
-    if (h.download) c.json.preencode(state, h.download)
+const handshakeUpload = {
+  preencode (state, u) {
+    c.string.preencode(state, u.target || '')
+    c.bool.preencode(state, u.isDirectory || false)
   },
-  encode (state, h) {
-    const flags = (h.upload ? 1 : 0) | (h.download ? 2 : 0)
-    c.uint.encode(state, flags)
-    if (h.upload) c.json.encode(state, h.upload)
-    if (h.download) c.json.encode(state, h.download)
+  encode (state, u) {
+    c.string.encode(state, u.target || '')
+    c.bool.encode(state, u.isDirectory || false)
   },
   decode (state) {
-    const flags = c.uint.decode(state)
     return {
-      upload: flags & 1 ? c.json.decode(state) : null,
-      download: flags & 2 ? c.json.decode(state) : null
+      target: c.string.decode(state),
+      isDirectory: c.bool.decode(state)
+    }
+  }
+}
+
+const handshakeDownload = {
+  preencode (state, u) {
+    c.string.preencode(state, u.source || '')
+  },
+  encode (state, u) {
+    c.string.encode(state, u.source || '')
+  },
+  decode (state) {
+    return {
+      source: c.string.decode(state)
+    }
+  }
+}
+
+const error = {
+  preencode (state, e) {
+    c.string.preencode(state, e.code || '')
+    c.string.preencode(state, e.path || '')
+    c.string.preencode(state, e.message || '')
+  },
+  encode (state, e) {
+    c.string.encode(state, e.code || '')
+    c.string.encode(state, e.path || '')
+    c.string.encode(state, e.message || '')
+  },
+  decode (state) {
+    return {
+      code: c.string.decode(state),
+      path: c.string.decode(state),
+      message: c.string.decode(state)
     }
   }
 }
@@ -83,7 +113,9 @@ const resize = {
 
 module.exports = {
   spawn,
-  handshakeShell,
-  handshakeCopy,
+  handshakeSpawn,
+  handshakeUpload,
+  handshakeDownload,
+  error,
   resize
 }

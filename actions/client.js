@@ -16,7 +16,7 @@ module.exports = async function (serverPublicKey, options = {}) {
   const channel = mux.createChannel({
     protocol: 'hypershell',
     id: null,
-    handshake: m.handshakeShell,
+    handshake: m.handshakeSpawn,
     messages: [
       { encoding: c.buffer }, // stdin
       { encoding: c.buffer, onmessage: onstdout }, // stdout
@@ -33,12 +33,10 @@ module.exports = async function (serverPublicKey, options = {}) {
   const [command = '', ...args] = spawn
 
   channel.open({
-    spawn: {
-      file: command || '',
-      args: args || [],
-      width: process.stdout.columns,
-      height: process.stdout.rows
-    }
+    file: command || '',
+    args: args || [],
+    width: process.stdout.columns,
+    height: process.stdout.rows
   })
 
   if (process.stdin.isTTY) process.stdin.setRawMode(true)

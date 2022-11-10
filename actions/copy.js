@@ -30,36 +30,32 @@ module.exports = async function (sourcePath, targetPath, options = {}) {
   const socket = ClientSocket({ keyfile, serverPublicKey })
   const mux = new Protomux(socket)
 
-  const channel = mux.createChannel({
-    protocol: 'hypershell-copy',
-    id: null,
-    handshake: m.handshakeCopy,
-    messages: [
-      { encoding: c.buffer }, // upload files
-      { encoding: c.buffer, onmessage: ondownload } // download files
-    ],
-    onclose () {
-      socket.end()
-
-      if (!this.userData) return
-
-      const { download } = this.userData
-      if (download && download.extract) download.extract.destroy()
-
-      const { upload } = this.userData
-      if (upload && upload.pack) upload.pack.destroy()
-    }
-  })
-
   if (fileOperation === 'upload') {
-    channel.open({
-      upload: { target: targetPath }
+    const upload = mux.createChannel({
+      protocol: 'hypershell-upload',
+      id: null,
+      handshake: m.handshakeUpload,
+      messages: [
+        null, // no header
+        { encoding: m.error, onuploaderror }, // errors
+        { encoding: c.raw } // data
+      ],
+      onclose () {
+        socket.end()
+
+        if (upload.userData.pack) upload.userData.pack.destroy()
+      }
     })
 
     const source = path.resolve(resolveHomedir(sourcePath))
-    let st
+
     try {
-      st = fs.lstatSync(source)
+      const st = fs.lstatSync(source)
+
+      upload.open({
+        target: targetPath,
+        isDirectory: st.isDirectory()
+      })
     } catch (error) {
       if (error.code === 'ENOENT') console.log(source + ': No such file or directory')
       else console.error(error.message)
@@ -68,94 +64,96 @@ module.exports = async function (sourcePath, targetPath, options = {}) {
       return
     }
 
-    const header = { isDirectory: st.isDirectory() }
-    channel.messages[0].send(Buffer.from(JSON.stringify(header)))
-
     const pack = tar.pack(source)
+    upload.userData = { pack }
 
     pack.once('error', function (error) {
       console.error(error.message)
-      channel.close()
+      upload.close()
     })
 
-    pipeToMessage(pack, channel.messages[0])
+    pack.on('data', (chunk) => upload.messages[2].send(chunk))
+    pack.once('end', () => upload.messages[2].send(EMPTY))
+  } else {
+    const download = mux.createChannel({
+      protocol: 'hypershell-download',
+      id: null,
+      handshake: m.handshakeDownload,
+      messages: [
+        { encoding: c.json, onmessage: ondownloadheader }, // header
+        { encoding: c.json, onmessage: ondownloaderror }, // errors
+        { encoding: c.raw, onmessage: ondownload } // data
+      ],
+      onclose () {
+        socket.end()
 
-    this.userData = {
-      upload: { pack }
-    }
+        if (!download.userData) return
 
-    return
-  }
-
-  // File operation: download
-  const target = path.resolve(resolveHomedir(targetPath))
-
-  channel.open({
-    download: { source: sourcePath }
-  })
-
-  channel.userData = {
-    download: { extract: null, target }
-  }
-}
-
-function ondownload (data, channel) {
-  const { download } = channel.userData
-
-  if (!download.extract) {
-    const header = JSON.parse(data.toString())
-    const { error, isDirectory } = header
-
-    if (error) {
-      if (error.code === 'ENOENT') console.log('hypershell-server:', error.path + ': No such file or directory')
-      else console.error(error.message)
-
-      channel.close()
-      return
-    }
-
-    const targetDir = isDirectory ? download.target : path.dirname(download.target)
-
-    const extract = tar.extract(targetDir, {
-      readable: true,
-      writable: true,
-      map (header) {
-        if (!isDirectory) header.name = path.basename(download.target)
-        return header
+        const { extract } = download.userData
+        if (extract) extract.destroy()
       }
     })
 
-    extract.on('error', function (error) {
-      console.error(error)
-      channel.close()
+    const target = path.resolve(resolveHomedir(targetPath))
+
+    download.open({
+      source: sourcePath
     })
 
-    extract.on('finish', function () {
-      channel.close()
-    })
+    download.userData = {
+      extract: null,
+      target
+    }
+  }
+}
 
-    download.extract = extract
+function onuploaderror (data, channel) {
+  console.error('hypershell-server:', data)
+  channel.close()
+}
 
-    return
+function ondownloadheader (data, channel) {
+  const { isDirectory } = data
+
+  const dir = isDirectory ? channel.userData.target : path.dirname(channel.userData.target)
+  const opts = {
+    readable: true,
+    writable: true,
+    map (header) {
+      if (!isDirectory) header.name = path.basename(channel.userData.target)
+      return header
+    }
   }
 
-  if (data) download.extract.write(data)
-  else download.extract.end()
+  const extract = tar.extract(dir, opts)
+  channel.userData.extract = extract
+
+  extract.once('error', function (error) {
+    console.error(error)
+    channel.close()
+  })
+
+  extract.once('finish', function () {
+    channel.close()
+  })
+}
+
+function ondownloaderror (data, channel) {
+  if (data.code === 'ENOENT') console.error('hypershell-server:', data.path + ': No such file or directory')
+  else console.error(data.message)
+
+  channel.close()
+}
+
+function ondownload (data, channel) {
+  const { extract } = channel.userData
+  if (data.length) extract.write(data)
+  else extract.end()
 }
 
 function errorAndExit (message) {
   console.error('Error:', message)
   process.exit(1)
-}
-
-function pipeToMessage (stream, message) {
-  stream.on('data', function (chunk) {
-    message.send(chunk)
-  })
-
-  stream.once('end', function () {
-    message.send(EMPTY)
-  })
 }
 
 function parseRemotePath (str) {
