@@ -14,7 +14,7 @@ Usage: hypershell-server [options]
 Create a P2P shell server.
 
 Options:
-  -f <filename>          Specifies the filename of the server key. (default: "~/.hypershell/peer")
+  -f <filename>          Filename of the server seed key. (default: "~/.hypershell/peer")
   --firewall <filename>  Firewall file with a list of public keys allowed to connect. (default: "~/.hypershell/firewall")
 ```
 
@@ -24,7 +24,7 @@ Usage: hypershell [options] <server public key>
 Connect to a P2P shell.
 
 Options:
-  -f <filename>      Specifies the filename of the client key. (default: "~/.hypershell/peer")
+  -f <filename>      Filename of the client seed key. (default: "~/.hypershell/peer")
 ```
 
 ```shell
@@ -33,39 +33,47 @@ Usage: hypershell-keygen [options]
 Create keys of type ed25519 for use by hypercore-protocol.
 
 Options:
-  -f <filename>  Specifies the filename of the key file.
+  -f <filename>  Filename of the seed key file.
   -c <comment>   Provides a new comment.
 ```
 
-## Client setup
+## Setup
 First, create a key with the default filename:
 ```bash
 hypershell-keygen
 ```
 
-Now you could connect to servers (they have to allow your public key):
+#### Client
+Now you can connect to servers (they have to allow your public key):
 ```bash
 hypershell <server public key>
 ```
 
-## Server setup
-This setup is only if you want to create a shell server.\
-If you're just a client, then no need for this.
+#### Server
+If you wanted to, you can also create a server:
+```bash
+hypershell-server
+```
 
-To be organized, create another key that represents the server:
+`~/.hypershell/firewall` will be automatically created as an empty file.\
+That means, all connections are denied by default.
+
+You can allow public keys in real-time by adding them to the firewall list.
+
+## Multiple keys
+To have multiple servers, you need multiple keys.
+
+Generate another key:
 ```bash
 hypershell-keygen -f ~/.hypershell/my-server
 ```
 
-Now create the shell server:
+Now create a new shell server:
 ```bash
-hypershell-server -f ~/.hypershell/my-server
+hypershell-server -f ~/.hypershell/my-server --firewall ~/.hypershell/my-server-firewall
 ```
 
-`~/.hypershell/firewall` will be automatically created as an empty file.\
-That means, by default all connections are denied.
-
-You can allow public keys in real-time by adding them to the firewall list.
+The client also accepts `-f` in case you need it.
 
 ## License
 MIT
