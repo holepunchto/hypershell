@@ -12,26 +12,19 @@ const os = require('os')
 const EMPTY = Buffer.alloc(0)
 
 module.exports = async function (sourcePath, targetPath, options = {}) {
+  const fileOperation = sourcePath[0] === '@' ? 'download' : 'upload'
   let serverPublicKey = null
-  let fileOperation = null
 
   const keyfile = path.resolve(options.f)
 
   if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
 
-  // + reuse
   if (sourcePath[0] === '@') {
-    const i = sourcePath.indexOf(':')
-    if (i === -1) errorAndExit('Invalid source path. For example: @name-or-public-key:/path/to/file')
-    fileOperation = 'download'
-    serverPublicKey = sourcePath.slice(1, i)
-    sourcePath = sourcePath.slice(i + 1)
+    [serverPublicKey, sourcePath] = parseRemotePath(sourcePath)
+    if (!sourcePath) errorAndExit('Invalid source path. For example: @name-or-public-key:/path/to/file')
   } else if (targetPath[0] === '@') {
-    const i = targetPath.indexOf(':')
-    if (i === -1) errorAndExit('Invalid target path. For example: @name-or-public-key:/path/to/file')
-    fileOperation = 'upload'
-    serverPublicKey = targetPath.slice(1, i)
-    targetPath = targetPath.slice(i + 1)
+    [serverPublicKey, targetPath] = parseRemotePath(targetPath)
+    if (!targetPath) errorAndExit('Invalid target path. For example: @name-or-public-key:/path/to/file')
   } else {
     errorAndExit('Invalid source and target paths.')
   }
@@ -222,6 +215,12 @@ function pipeToMessage (stream, message) {
   stream.once('end', function () {
     message.send(EMPTY)
   })
+}
+
+function parseRemotePath (str) {
+  const i = str.indexOf(':')
+  if (i === -1) return [null, null]
+  return [str.slice(1, i), str.slice(i + 1)] // [host, path]
 }
 
 // Based on expand-home-dir
