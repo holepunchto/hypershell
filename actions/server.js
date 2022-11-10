@@ -236,43 +236,6 @@ function onupload (data, channel) {
   else upload.extract.end()
 }
 
-function ondownload (data, channel) {
-  const { download } = channel.userData
-
-  if (!download.extract) {
-    const header = JSON.parse(data.toString())
-    const { isDirectory } = header
-
-    const targetDir = isDirectory ? download.target : path.dirname(download.target)
-    fs.mkdirSync(targetDir, { recursive: true })
-
-    const extract = tar.extract(targetDir, {
-      readable: true,
-      writable: true,
-      map (header) {
-        if (!isDirectory) header.name = path.basename(download.target)
-        return header
-      }
-    })
-
-    extract.on('error', function (error) {
-      console.error(error)
-      channel.close()
-    })
-
-    extract.on('finish', function () {
-      channel.close()
-    })
-
-    download.extract = extract
-
-    return
-  }
-
-  if (data.length) download.extract.write(data)
-  else download.extract.end()
-}
-
 function readAuthorizedPeers (filename) {
   if (typeof filename === 'string' && !fs.existsSync(filename)) {
     console.log('Notice: creating default firewall', filename)
