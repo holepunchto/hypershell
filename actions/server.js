@@ -6,7 +6,6 @@ const goodbye = require('graceful-goodbye')
 const PTY = require('tt-native')
 const Protomux = require('protomux')
 const c = require('compact-encoding')
-const { SHELLDIR } = require('../constants.js')
 const m = require('../messages.js')
 
 const isWin = os.platform() === 'win32'
@@ -19,13 +18,7 @@ module.exports = async function (options = {}) {
 
   if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
 
-  if (!fs.existsSync(firewall)) {
-    console.log('Notice: creating default firewall', firewall)
-    fs.mkdirSync(path.dirname(firewall), { recursive: true })
-    fs.writeFileSync(firewall, '', { flag: 'wx' })
-  }
-
-  if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
+  readAuthorizedPeers(firewall)
 
   const seed = Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
   const keyPair = DHT.keyPair(seed)
@@ -45,9 +38,7 @@ module.exports = async function (options = {}) {
   console.log()
 
   function onFirewall (remotePublicKey, remoteHandshakePayload) {
-    const publicKeys = readAuthorizedKeys(firewall)
-
-    for (const publicKey of publicKeys) {
+    for (const publicKey of readAuthorizedPeers(firewall)) {
       if (remotePublicKey.equals(publicKey)) {
         console.log('Firewall allowed:', remotePublicKey.toString('hex'))
         return false
@@ -138,13 +129,22 @@ function onresize (data, channel) {
   pty.resize(data.width, data.height)
 }
 
-function readAuthorizedKeys (firewall) {
+function readAuthorizedPeers (filename) {
+  if (!fs.existsSync(filename)) {
+    console.log('Notice: creating default firewall', filename)
+    fs.mkdirSync(path.dirname(filename), { recursive: true })
+    fs.writeFileSync(filename, '# <public key>\n', { flag: 'wx' })
+  }
+
   try {
-    return fs.readFileSync(firewall, 'utf8')
+    return fs.readFileSync(filename, 'utf8')
       .split('\n')
-      .map(line => line.match(/([a-zA-Z0-9]*)/i))
+      .map(line => {
+        line = line.replace(/\s+/g, ' ').trim()
+        line = line.replace(/#.*$/, '').trim()
+        return line
+      })
       .filter(m => m)
-      .map(m => m[1])
       .map(v => Buffer.from(v, 'hex'))
   } catch (error) {
     if (error.code === 'ENOENT') return []
