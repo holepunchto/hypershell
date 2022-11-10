@@ -130,18 +130,15 @@ module.exports = async function (sourcePath, targetPath, options = {}) {
     return
   }
 
-  if (fileOperation === 'download') {
-    const target = path.resolve(resolveHomedir(targetPath))
+  // fileOperation: download
+  const target = path.resolve(resolveHomedir(targetPath))
 
-    channel.open({
-      download: { source: sourcePath }
-    })
+  channel.open({
+    download: { source: sourcePath }
+  })
 
-    channel.userData = {
-      download: { extract: null, target }
-    }
-
-    return
+  channel.userData = {
+    download: { extract: null, target }
   }
 }
 
