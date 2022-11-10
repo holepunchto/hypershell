@@ -2,7 +2,7 @@ const c = require('compact-encoding')
 
 const stringArray = c.array(c.string)
 
-const spawn = {
+const handshakeSpawn = {
   preencode (state, s) {
     c.string.preencode(state, s.file || '')
     stringArray.preencode(state, s.args || [])
@@ -21,24 +21,6 @@ const spawn = {
       args: stringArray.decode(state),
       width: c.uint.decode(state),
       height: c.uint.decode(state)
-    }
-  }
-}
-
-const handshakeSpawn = {
-  preencode (state, h) {
-    state.end++ // flags
-    if (h.spawn) spawn.preencode(state, h.spawn)
-  },
-  encode (state, h) {
-    const flags = (h.spawn ? 1 : 0)
-    c.uint.encode(state, flags)
-    if (h.spawn) spawn.encode(state, h.spawn)
-  },
-  decode (state) {
-    const flags = c.uint.decode(state)
-    return {
-      spawn: flags & 1 ? spawn.decode(state) : null
     }
   }
 }
@@ -112,7 +94,6 @@ const resize = {
 }
 
 module.exports = {
-  spawn,
   handshakeSpawn,
   handshakeUpload,
   handshakeDownload,
