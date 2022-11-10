@@ -51,7 +51,8 @@ module.exports = async function (serverPublicKey, options = {}) {
     }
   })
 
-  process.stdin.setRawMode(true)
+  if (process.stdin.isTTY) process.stdin.setRawMode(true)
+
   process.stdin.on('data', function (data) {
     channel.messages[0].send(data)
   })
@@ -82,11 +83,10 @@ module.exports = async function (serverPublicKey, options = {}) {
     else if (error.code === 'PEER_CONNECTION_FAILED') console.error(error.message, '(probably firewalled)')
     else console.error(error)
 
-    process.exit()
+    process.exitCode = 1
   })
 
   socket.once('close', function () {
-    console.error('Connection closed.')
     process.exit()
   })
 }
