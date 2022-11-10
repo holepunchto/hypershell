@@ -19,10 +19,10 @@ module.exports = async function (sourcePath, targetPath, options = {}) {
 
   if (sourcePath[0] === '@') {
     [serverPublicKey, sourcePath] = parseRemotePath(sourcePath)
-    if (!sourcePath) errorAndExit('Invalid source path. For example: @name-or-public-key:/path/to/file')
+    if (!sourcePath) errorAndExit('Invalid source path.')
   } else if (targetPath[0] === '@') {
     [serverPublicKey, targetPath] = parseRemotePath(targetPath)
-    if (!targetPath) errorAndExit('Invalid target path. For example: @name-or-public-key:/path/to/file')
+    if (!targetPath) errorAndExit('Invalid target path.')
   } else {
     errorAndExit('Invalid source or target path.')
   }
