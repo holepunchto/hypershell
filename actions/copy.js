@@ -77,8 +77,8 @@ module.exports = async function (sourcePath, targetPath, options = {}) {
     id: null,
     handshake: m.handshake,
     messages: [
-      { encoding: m.buffer }, // upload files
-      { encoding: m.buffer, onmessage: ondownload } // download files
+      { encoding: c.buffer }, // upload files
+      { encoding: c.buffer, onmessage: ondownload } // download files
     ],
     onclose () {
       socket.end()
@@ -185,7 +185,7 @@ function ondownload (data, channel) {
     return
   }
 
-  if (data.length) download.extract.write(data)
+  if (data) download.extract.write(data)
   else download.extract.end()
 }
 

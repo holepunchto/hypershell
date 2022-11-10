@@ -107,9 +107,7 @@ function onConnection (socket) {
       { encoding: c.buffer }, // stdout
       { encoding: c.buffer }, // stderr
       { encoding: c.uint }, // exit code
-      { encoding: m.resize, onmessage: onresize }, // resize
-      { encoding: m.buffer, onmessage: onupload }, // upload files
-      { encoding: m.buffer } // download files
+      { encoding: m.resize, onmessage: onresize } // resize
     ],
     onclose () {
       if (!this.userData) return
@@ -175,8 +173,8 @@ function onConnection (socket) {
       copy.close()
     },
     messages: [
-      { encoding: m.buffer, onmessage: onupload }, // upload files
-      { encoding: m.buffer } // download files
+      { encoding: c.buffer, onmessage: onupload }, // upload files
+      { encoding: c.buffer } // download files
     ],
     onclose () {
       if (!this.userData) return
@@ -234,7 +232,7 @@ function onupload (data, channel) {
     return
   }
 
-  if (data.length) upload.extract.write(data)
+  if (data) upload.extract.write(data)
   else upload.extract.end()
 }
 
