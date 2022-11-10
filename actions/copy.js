@@ -26,7 +26,7 @@ module.exports = async function (sourcePath, targetPath, options = {}) {
     [serverPublicKey, targetPath] = parseRemotePath(targetPath)
     if (!targetPath) errorAndExit('Invalid target path. For example: @name-or-public-key:/path/to/file')
   } else {
-    errorAndExit('Invalid source and target paths.')
+    errorAndExit('Invalid source or target path.')
   }
 
   for (const peer of readKnownPeers()) {
