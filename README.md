@@ -23,9 +23,6 @@ Usage: hypershell [options] <server public key>
 
 Connect to a P2P shell.
 
-Arguments:
-  server public key  Public key of the server
-
 Options:
   -f <filename>      Filename of the client seed key. (default: "~/.hypershell/peer")
   --allowance [token]  Create or use a temporary one time password to connect to the server.
