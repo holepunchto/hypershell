@@ -130,7 +130,7 @@ module.exports = async function (sourcePath, targetPath, options = {}) {
     return
   }
 
-  // fileOperation: download
+  // File operation: download
   const target = path.resolve(resolveHomedir(targetPath))
 
   channel.open({
