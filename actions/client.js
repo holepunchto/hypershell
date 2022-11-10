@@ -126,11 +126,12 @@ function readKnownPeers () {
       .split('\n')
       .map(line => {
         line = line.replace(/\s+/g, ' ').trim()
-        if (line[0] === '#') return ''
-        return line.match(/(.*?) ([a-zA-Z0-9]*)/i)
+        line = line.replace(/#.*$/, '').trim()
+        const i = line.indexOf(' ')
+        if (i > -1) return [line.slice(0, i), line.slice(i + 1)]
       })
-      .filter(m => m && m[1] && m[2])
-      .map(m => ({ name: m[1], publicKey: m[2] }))
+      .filter(m => m && m[0] && m[1])
+      .map(m => ({ name: m[0], publicKey: m[1] }))
   } catch (error) {
     if (error.code === 'ENOENT') return []
     throw error
