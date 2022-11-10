@@ -14,7 +14,6 @@ const EMPTY = Buffer.alloc(0)
 module.exports = async function (sourcePath, targetPath, options = {}) {
   let serverPublicKey = null
   let fileOperation = null
-  console.log('copy', { sourcePath, targetPath, options })
 
   const keyfile = path.resolve(options.f)
 
@@ -36,9 +35,6 @@ module.exports = async function (sourcePath, targetPath, options = {}) {
   } else {
     errorAndExit('Invalid source and target paths.')
   }
-
-  console.log({ serverPublicKey })
-  console.log({ fileOperation, sourcePath, targetPath })
 
   for (const peer of readKnownPeers()) {
     if (peer.name === serverPublicKey) {
