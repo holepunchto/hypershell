@@ -66,7 +66,7 @@ function onConnection (socket) {
   const channel = mux.createChannel({
     protocol: 'hypershell',
     id: null,
-    handshake: m.handshake,
+    handshake: m.handshakeShell,
     onopen (handshake) {
       if (!handshake.spawn) {
         channel.close()
@@ -126,7 +126,7 @@ function onConnection (socket) {
   const copy = mux.createChannel({
     protocol: 'hypershell-copy',
     id: null,
-    handshake: m.handshake,
+    handshake: m.handshakeCopy,
     onopen (handshake) {
       if (handshake.upload) {
         const { target } = handshake.upload

@@ -33,7 +33,7 @@ module.exports = async function (sourcePath, targetPath, options = {}) {
   const channel = mux.createChannel({
     protocol: 'hypershell-copy',
     id: null,
-    handshake: m.handshake,
+    handshake: m.handshakeCopy,
     messages: [
       { encoding: c.buffer }, // upload files
       { encoding: c.buffer, onmessage: ondownload } // download files
