@@ -15,7 +15,7 @@ Create a P2P shell server.
 
 Options:
   -f <filename>          Filename of the server seed key. (default: "~/.hypershell/peer")
-  --firewall <filename>  Firewall file with a list of public keys allowed to connect. (default: "~/.hypershell/authorized_peers")
+  --firewall <filename>  List of allowed public keys. (default: "~/.hypershell/authorized_peers")
 ```
 
 ```shell
