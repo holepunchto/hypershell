@@ -30,6 +30,7 @@
     "keypear": "^1.1.1",
     "minimist": "^1.2.7",
     "protomux": "^3.4.0",
+    "read-file-live": "^1.0.1",
     "tt-native": "^1.0.2"
   },
   "devDependencies": {

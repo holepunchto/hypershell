@@ -7,6 +7,7 @@ const PTY = require('tt-native')
 const Protomux = require('protomux')
 const c = require('compact-encoding')
 const m = require('../messages.js')
+const readFile = require('read-file-live')
 
 const isWin = os.platform() === 'win32'
 const shellFile = isWin ? 'powershell.exe' : (process.env.SHELL || 'bash')
@@ -18,7 +19,11 @@ module.exports = async function (options = {}) {
 
   if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
 
-  readAuthorizedPeers(firewall)
+  let allowed = readAuthorizedPeers(firewall)
+  const unwatchFirewall = readFile(firewall, function (buf) {
+    allowed = readAuthorizedPeers(buf)
+  })
+  goodbye(() => unwatchFirewall(), 2)
 
   const seed = Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
   const keyPair = DHT.keyPair(seed)
@@ -38,7 +43,7 @@ module.exports = async function (options = {}) {
   console.log()
 
   function onFirewall (remotePublicKey, remoteHandshakePayload) {
-    for (const publicKey of readAuthorizedPeers(firewall)) {
+    for (const publicKey of allowed) {
       if (remotePublicKey.equals(publicKey)) {
         console.log('Firewall allowed:', remotePublicKey.toString('hex'))
         return false
@@ -130,14 +135,15 @@ function onresize (data, channel) {
 }
 
 function readAuthorizedPeers (filename) {
-  if (!fs.existsSync(filename)) {
+  if (typeof filename === 'string' && !fs.existsSync(filename)) {
     console.log('Notice: creating default firewall', filename)
     fs.mkdirSync(path.dirname(filename), { recursive: true })
     fs.writeFileSync(filename, '# <public key>\n', { flag: 'wx' })
   }
 
   try {
-    return fs.readFileSync(filename, 'utf8')
+    const list = typeof filename === 'string' ? fs.readFileSync(filename, 'utf8') : (filename || '').toString()
+    return list
       .split('\n')
       .map(line => {
         line = line.replace(/\s+/g, ' ').trim()
