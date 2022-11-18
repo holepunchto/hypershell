@@ -63,7 +63,7 @@ You can allow public keys in real-time by adding them to the firewall list.
 ## Known peers
 There will be a file `~/.hypershell/known_peers`.
 
-Add named peers to the file like this:
+Add named peers to the file like for example:
 ```bash
 # <name> <public key>
 home cdb7b7774c3d90547ce2038b51367dc4c96c42abf7c2e794bb5eb036ec7793cd 
