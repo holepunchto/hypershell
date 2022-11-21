@@ -15,7 +15,7 @@ Create a P2P shell server.
 
 Options:
   -f <filename>          Filename of the server seed key. (default: "~/.hypershell/peer")
-  --firewall <filename>  Firewall file with a list of public keys allowed to connect. (default: "~/.hypershell/authorized_peers")
+  --firewall <filename>  List of allowed public keys. (default: "~/.hypershell/authorized_peers")
 ```
 
 ```shell
@@ -59,6 +59,17 @@ hypershell-server
 That means, all connections are denied by default.
 
 You can allow public keys in real-time by adding them to the firewall list.
+
+## Known peers
+There will be a file `~/.hypershell/known_peers`.
+
+Add named peers to the file like for example:
+```bash
+# <name> <public key>
+home cdb7b7774c3d90547ce2038b51367dc4c96c42abf7c2e794bb5eb036ec7793cd 
+```
+
+Now just `hypershell home` and no more always writing the entire public key.
 
 ## Multiple keys
 To have multiple servers, you need multiple keys.
