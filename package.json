@@ -1,6 +1,6 @@
 {
   "name": "hypershell",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "CLI to create and connect to P2P E2E encrypted shells",
   "main": "index.js",
   "bin": {
