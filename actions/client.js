@@ -31,11 +31,12 @@ module.exports = async function (serverPublicKey, options = {}) {
       onopen () {
         console.log(Date.now(), '5) onopen')
 
-        channel.userData = { streams: {} }
+        channel.userData = { streams: {} } // + map?
       },
       onclose () {
         console.log(Date.now(), '12) onclose')
         socket.end()
+        server.close()
       }
     })
 
@@ -47,11 +48,15 @@ module.exports = async function (serverPublicKey, options = {}) {
       const { streams } = channel.userData
 
       const rawStream = node.createRawStream() // + encryption?
-      console.log('node createRawStream', { clientId: rawStream.id })
-      streams[rawStream.id] = rawStream
-      channel.messages[0].send({ clientId: rawStream.id, serverId: 0 })
+      rawStream.userData = localSocket
 
-      pump(localSocket, rawStream, localSocket)
+      streams[rawStream.id] = rawStream
+      rawStream.on('close', function () {
+        console.log('rawStream closed')
+        delete streams[rawStream.id]
+      })
+
+      channel.messages[0].send({ clientId: rawStream.id, serverId: 0 })
     })
 
     await listenTCP(server, tunnel.local.port, tunnel.local.host)
@@ -64,8 +69,10 @@ module.exports = async function (serverPublicKey, options = {}) {
       const rawStream = streams[clientId]
       if (!rawStream) throw new Error('Stream not found: ' + clientId)
 
-      console.log('DHT connectRawStream', { serverId })
       DHT.connectRawStream(socket, rawStream, serverId)
+
+      const localSocket = rawStream.userData
+      pump(localSocket, rawStream, localSocket)
     }
 
     return

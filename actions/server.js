@@ -241,10 +241,16 @@ function onupload (data, channel) {
 
 function onstreamid (data, channel) {
   const { node, socket, handshake, streams } = channel.userData
-  const { clientId, serverId } = data
+  const { clientId } = data
 
   const rawStream = node.createRawStream()
+
   streams[rawStream.id] = rawStream
+  rawStream.on('close', function () {
+    console.log('rawStream closed')
+    delete streams[rawStream.id]
+  })
+
   channel.messages[0].send({ clientId, serverId: rawStream.id })
 
   DHT.connectRawStream(socket, rawStream, clientId)
