@@ -146,9 +146,9 @@ function parseVariadic (rawArgs) {
 
 function parseTunnel (tunnel) {
   const match = tunnel.match(/(?:(.*):)?([\d]+):(?:(.*):)?([\d]+)/i)
-  if (!match[2]) errorAndExit('localport is required (localhost:localport:remotehost:remoteport)')
-  if (!match[3]) errorAndExit('remotehost is required (localhost:localport:remotehost:remoteport)')
-  if (!match[4]) errorAndExit('remoteport is required (localhost:localport:remotehost:remoteport)')
+  if (!match[2]) errorAndExit('port is required (address:port:host:hostport)')
+  if (!match[3]) errorAndExit('host is required (address:port:host:hostport)')
+  if (!match[4]) errorAndExit('hostport is required (address:port:host:hostport)')
 
   const local = { host: match[1] || '0.0.0.0', port: match[2] }
   const remote = { host: match[3], port: match[4] }
