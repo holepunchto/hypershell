@@ -28,7 +28,7 @@ module.exports = async function (sourcePath, targetPath, options = {}) {
     errorAndExit('Invalid source or target path.')
   }
 
-  const socket = ClientSocket({ keyfile, serverPublicKey })
+  const { socket } = ClientSocket({ keyfile, serverPublicKey })
   const mux = new Protomux(socket)
 
   if (fileOperation === 'upload') {

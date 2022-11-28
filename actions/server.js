@@ -9,6 +9,8 @@ const c = require('compact-encoding')
 const m = require('../messages.js')
 const readFile = require('read-file-live')
 const tar = require('tar-fs')
+const net = require('net')
+const pump = require('pump')
 
 const isWin = os.platform() === 'win32'
 const shellFile = isWin ? 'powershell.exe' : (process.env.SHELL || 'bash')
@@ -57,11 +59,16 @@ module.exports = async function (options = {}) {
 }
 
 function onConnection (socket) {
+  const node = this.dht
+
   socket.on('error', (error) => console.error(error.code, error))
 
   socket.setKeepAlive(5000)
 
   const mux = new Protomux(socket)
+
+  console.log(socket.rawStream.id)
+  console.log('createStream?', socket.rawStream.udx.createStream)
 
   const spawn = mux.createChannel({
     protocol: 'hypershell',
@@ -189,9 +196,30 @@ function onConnection (socket) {
     }
   })
 
+  const local = mux.createChannel({
+    protocol: 'hypershell-tunnel-local',
+    id: null,
+    handshake: c.json,
+    onopen (handshake) {
+      console.log(Date.now(), '3) onopen', handshake)
+
+      this.userData = { node, socket, handshake, streams: {} } // + try to not pass { node, socket, handshake }
+    },
+    messages: [
+      { encoding: c.json, onmessage: onstreamid },
+    ],
+    onclose () {
+      console.log(Date.now(), 'onclose')
+    },
+    ondestroy () {
+      console.log(Date.now(), 'ondestroy')
+    }
+  })
+
   spawn.open({})
   upload.open({})
   download.open({})
+  local.open({})
 }
 
 function onstdin (data, channel) {
@@ -209,6 +237,42 @@ function onupload (data, channel) {
   const { extract } = channel.userData
   if (data.length) extract.write(data)
   else extract.end()
+}
+
+function onstreamid (data, channel) {
+  const { node, socket, handshake, streams } = channel.userData
+  const { clientId, serverId } = data
+
+  const rawStream = node.createRawStream()
+  streams[rawStream.id] = rawStream
+  channel.messages[0].send({ clientId, serverId: rawStream.id })
+
+  DHT.connectRawStream(socket, rawStream, clientId)
+
+  pump(rawStream, net.connect(handshake.port, handshake.address), rawStream)
+}
+
+function onlocaldata (data, channel) {
+  console.log(Date.now(), '4) on local data')
+  const { socket } = channel.userData
+  if (data === null) socket.write(EMPTY)
+  else socket.write(data)
+}
+
+function onlocalend (data, channel) { // [4]
+  const { socket } = channel.userData
+  console.log(Date.now(), '12) on local end', 'ended?', { writable: socket._writableState.ended, readable: socket._readableState.ended })
+
+  if (socket._writableState.ended) return
+
+  channel.messages[1].send(true)
+  socket.end()
+}
+
+function onlocalclose (data, channel) { // [4]
+  const { socket } = channel.userData
+  console.log(Date.now(), 'on local close', 'ended?', { writable: socket._writableState.ended, readable: socket._readableState.ended })
+  // channel.close()
 }
 
 function readAuthorizedPeers (filename) {
@@ -238,4 +302,11 @@ function readAuthorizedPeers (filename) {
 function errorAndExit (message) {
   console.error('Error:', message)
   process.exit(1)
+}
+
+function randomIntExcept (current) {
+  while (true) {
+    const id = (Math.random() * 0x100000000) >>> 0
+    if (id !== current) return id
+  }
 }
