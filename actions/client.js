@@ -156,13 +156,6 @@ function parseTunnel (tunnel) {
   return { local, remote }
 }
 
-function randomIntExcept (current) {
-  while (true) {
-    const id = (Math.random() * 0x100000000) >>> 0
-    if (id !== current) return id
-  }
-}
-
 // based on bind-easy
 function listenTCP (server, port, address) {
   return new Promise(function (resolve, reject) {
