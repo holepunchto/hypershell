@@ -184,20 +184,15 @@ function parseTunnel (tunnel) {
   return { local, remote }
 }
 
-// based on bind-easy
 function listenTCP (server, port, address) {
   return new Promise((resolve, reject) => {
-    server.on('listening', onlistening)
+    server.on('listening', done)
     server.on('error', done)
 
     server.listen(port, address)
 
-    function onlistening () {
-      done(null)
-    }
-
     function done (err) {
-      server.removeListener('listening', onlistening)
+      server.removeListener('listening', done)
       server.removeListener('error', done)
 
       if (err) reject(err)
