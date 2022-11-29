@@ -28,45 +28,57 @@ module.exports = async function (serverPublicKey, options = {}) {
       messages: [
         { encoding: c.json, onmessage: onstreamid },
       ],
-      onopen () {
-        console.log(Date.now(), '5) onopen')
+      async onopen () {
+        this.userData = { streams: new Map() }
 
-        channel.userData = { streams: {} } // + map?
+        const server = net.createServer(onconnection) // + option for udp
+        this.userData.server = server
+
+        const ready = listenTCP(server, tunnel.local.port, tunnel.local.host)
+        this.userData.ready = ready
+
+        ready.catch(() => {
+          this.close()
+        })
       },
-      onclose () {
-        console.log(Date.now(), '12) onclose')
+      async onclose () {
         socket.end()
-        server.close()
+
+        if (!this.userData) return
+
+        const { server, ready, streams } = this.userData
+
+        await ready
+        if (server.listening) server.close()
+
+        for (const [, stream] of streams) {
+          stream.destroy()
+        }
       }
     })
 
     channel.open(tunnel.remote)
 
-    const server = net.createServer() // + option for udp
-
-    server.on('connection', function (localSocket) {
+    function onconnection (localSocket) {
       const { streams } = channel.userData
 
       const rawStream = node.createRawStream() // + encryption?
       rawStream.userData = localSocket
 
-      streams[rawStream.id] = rawStream
+      streams.set(rawStream.id, rawStream)
       rawStream.on('close', function () {
-        console.log('rawStream closed')
-        delete streams[rawStream.id]
+        streams.delete(rawStream.id)
+        localSocket.destroy()
       })
 
       channel.messages[0].send({ clientId: rawStream.id, serverId: 0 })
-    })
+    }
 
-    await listenTCP(server, tunnel.local.port, tunnel.local.host)
-    // + goodbye => server.close()
-
-    function onstreamid (data) {
+    function onstreamid (data, channel) {
       const { streams } = channel.userData
       const { clientId, serverId } = data
 
-      const rawStream = streams[clientId]
+      const rawStream = streams.get(clientId)
       if (!rawStream) throw new Error('Stream not found: ' + clientId)
 
       DHT.connectRawStream(socket, rawStream, serverId)
@@ -106,9 +118,6 @@ module.exports = async function (serverPublicKey, options = {}) {
     width: process.stdout.columns,
     height: process.stdout.rows
   })
-
-  console.log(socket)
-  console.log(socket.rawStream.udx.createStream)
 
   if (process.stdin.isTTY) process.stdin.setRawMode(true)
 
@@ -165,7 +174,7 @@ function parseTunnel (tunnel) {
 
 // based on bind-easy
 function listenTCP (server, port, address) {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     server.on('listening', onlistening)
     server.on('error', done)
 

@@ -67,9 +67,6 @@ function onConnection (socket) {
 
   const mux = new Protomux(socket)
 
-  console.log(socket.rawStream.id)
-  console.log('createStream?', socket.rawStream.udx.createStream)
-
   const spawn = mux.createChannel({
     protocol: 'hypershell',
     id: null,
@@ -201,18 +198,19 @@ function onConnection (socket) {
     id: null,
     handshake: c.json,
     onopen (handshake) {
-      console.log(Date.now(), '3) onopen', handshake)
-
-      this.userData = { node, socket, handshake, streams: {} } // + try to not pass { node, socket, handshake }
+      this.userData = { node, socket, handshake, streams: new Map() } // + try to not pass { node, socket, handshake }
     },
     messages: [
       { encoding: c.json, onmessage: onstreamid },
     ],
     onclose () {
-      console.log(Date.now(), 'onclose')
-    },
-    ondestroy () {
-      console.log(Date.now(), 'ondestroy')
+      if (!this.userData) return
+
+      const { streams } = this.userData
+
+      for (const [, stream] of streams) {
+        stream.destroy()
+      }
     }
   })
 
@@ -245,40 +243,19 @@ function onstreamid (data, channel) {
 
   const rawStream = node.createRawStream()
 
-  streams[rawStream.id] = rawStream
+  streams.set(rawStream.id, rawStream)
   rawStream.on('close', function () {
-    console.log('rawStream closed')
-    delete streams[rawStream.id]
+    streams.delete(rawStream.id)
   })
 
   channel.messages[0].send({ clientId, serverId: rawStream.id })
 
   DHT.connectRawStream(socket, rawStream, clientId)
 
-  pump(rawStream, net.connect(handshake.port, handshake.address), rawStream)
-}
+  const remoteSocket = net.connect(handshake.port, handshake.address)
+  rawStream.userData = remoteSocket
 
-function onlocaldata (data, channel) {
-  console.log(Date.now(), '4) on local data')
-  const { socket } = channel.userData
-  if (data === null) socket.write(EMPTY)
-  else socket.write(data)
-}
-
-function onlocalend (data, channel) { // [4]
-  const { socket } = channel.userData
-  console.log(Date.now(), '12) on local end', 'ended?', { writable: socket._writableState.ended, readable: socket._readableState.ended })
-
-  if (socket._writableState.ended) return
-
-  channel.messages[1].send(true)
-  socket.end()
-}
-
-function onlocalclose (data, channel) { // [4]
-  const { socket } = channel.userData
-  console.log(Date.now(), 'on local close', 'ended?', { writable: socket._writableState.ended, readable: socket._readableState.ended })
-  // channel.close()
+  pump(rawStream, remoteSocket, rawStream)
 }
 
 function readAuthorizedPeers (filename) {
