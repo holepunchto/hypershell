@@ -28,7 +28,7 @@ module.exports = async function (serverPublicKey, options = {}) {
       messages: [
         { encoding: c.json, onmessage: onstreamid },
       ],
-      async onopen () {
+      onopen () {
         this.userData = { streams: new Map() }
 
         const server = net.createServer(onconnection) // + option for udp
