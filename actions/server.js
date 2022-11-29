@@ -65,6 +65,11 @@ function onConnection (socket) {
 
   socket.setKeepAlive(5000)
 
+  goodbye(() => {
+    socket.end()
+    return waitForSocketTermination(socket)
+  }, 1)
+
   const mux = new Protomux(socket)
 
   const spawn = mux.createChannel({
@@ -292,4 +297,47 @@ function randomIntExcept (current) {
     const id = (Math.random() * 0x100000000) >>> 0
     if (id !== current) return id
   }
+}
+
+function waitForSocketTermination (socket) {
+  return new Promise((resolve) => {
+    const isClosed = socket.rawStream._closed
+    const isReadableEnded = socket.rawStream._readableState.ended
+    const isWritableEnded = socket.rawStream._writableState.ended
+
+    console.log('socket term', { isClosed, isReadableEnded, isWritableEnded })
+    // waitForSocketTermination { isClosed: false, isReadableEnded: true, isWritableEnded: true }
+    // + that doesn't trigger a close event?
+
+    if (isReadableEnded && isWritableEnded) {
+      resolve()
+      return
+    }
+
+    // + timeout end destroy?
+
+    if (isClosed) {
+      resolve()
+      return
+    }
+
+    socket.on('end', onend)
+    socket.on('close', onclose)
+
+    function onend () {
+      console.log('socket term (onend)', { isClosed, isReadableEnded, isWritableEnded })
+      onterm()
+    }
+
+    function onclose () {
+      console.log('socket term (onclose)', { isClosed, isReadableEnded, isWritableEnded })
+      onterm()
+    }
+
+    function onterm () {
+      socket.removeListener('end', onend)
+      socket.removeListener('close', onclose)
+      resolve()
+    }
+  })
 }
