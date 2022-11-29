@@ -8,7 +8,86 @@ const ClientSocket = require('../lib/client-socket.js')
 const pump = require('pump')
 const DHT = require('@hyperswarm/dht')
 
-// hypershell home -L 127.0.0.1:3000:127.0.0.1:80
+class LocalTunnel {
+  constructor (config, { node, socket, mux }) {
+    this.dht = node
+    this.socket = socket
+    this.mux = mux
+
+    this.config = LocalTunnel.parse(config) // + defaults
+
+    this.channel = mux.createChannel({
+      protocol: 'hypershell-tunnel-local',
+      id: null,
+      handshake: c.json,
+      messages: [
+        { encoding: c.json, onmessage: this.onstreamid.bind(this) },
+      ],
+      onopen: this.onopen.bind(this),
+      onclose: this.onclose.bind(this)
+    })
+
+    this.streams = new Map()
+    this.server = net.createServer(this.onconnection.bind(this)) // + option for udp
+    this.ready = null
+
+    this.channel.open(this.config.remote)
+  }
+
+  onopen () {
+    this.ready = listenTCP(this.server, this.config.local.port, this.config.local.host) // + try same port error
+
+    this.ready.catch(() => {
+      this.channel.close()
+    })
+  }
+
+  async onclose () {
+    this.socket.end()
+
+    await this.ready
+    if (this.server.listening) this.server.close()
+
+    for (const [, stream] of this.streams) {
+      stream.destroy()
+    }
+  }
+
+  onconnection (localSocket) {
+    const rawStream = this.dht.createRawStream() // + encryption?
+    rawStream.userData = localSocket
+    rawStream.on('close', () => localSocket.destroy())
+
+    this.streams.set(rawStream.id, rawStream)
+    rawStream.on('close', () => this.streams.delete(rawStream.id))
+
+    this.channel.messages[0].send({ clientId: rawStream.id, serverId: 0 })
+  }
+
+  onstreamid (data, channel) {
+    const { clientId, serverId } = data
+
+    const rawStream = this.streams.get(clientId)
+    if (!rawStream) throw new Error('Stream not found: ' + clientId)
+
+    DHT.connectRawStream(this.socket, rawStream, serverId)
+
+    const localSocket = rawStream.userData
+    pump(localSocket, rawStream, localSocket)
+  }
+
+  static parse (config) {
+    const match = config.match(/(?:(.*):)?([\d]+):(?:(.*):)?([\d]+)/i)
+    if (!match[2]) errorAndExit('port is required (address:port:host:hostport)')
+    if (!match[3]) errorAndExit('host is required (address:port:host:hostport)')
+    if (!match[4]) errorAndExit('hostport is required (address:port:host:hostport)')
+
+    const local = { host: match[1] || '0.0.0.0', port: match[2] }
+    const remote = { host: match[3], port: match[4] }
+
+    return { local, remote }
+  }
+}
 
 module.exports = async function (serverPublicKey, options = {}) {
   const keyfile = path.resolve(options.f)
@@ -19,77 +98,10 @@ module.exports = async function (serverPublicKey, options = {}) {
   const mux = new Protomux(socket) // + what if I create the mux on 'connect' event?
 
   if (options.L) {
-    const tunnel = parseTunnel(options.L) // + defaults
-
-    const channel = mux.createChannel({
-      protocol: 'hypershell-tunnel-local',
-      id: null,
-      handshake: c.json,
-      messages: [
-        { encoding: c.json, onmessage: onstreamid },
-      ],
-      onopen () {
-        this.userData = { streams: new Map() }
-
-        const server = net.createServer(onconnection) // + option for udp
-        this.userData.server = server
-
-        const ready = listenTCP(server, tunnel.local.port, tunnel.local.host)
-        this.userData.ready = ready
-
-        ready.catch(() => {
-          this.close()
-        })
-      },
-      async onclose () {
-        socket.end()
-
-        if (!this.userData) return
-
-        const { server, ready, streams } = this.userData
-
-        await ready
-        if (server.listening) server.close()
-
-        for (const [, stream] of streams) {
-          stream.destroy()
-        }
-      }
-    })
-
-    channel.open(tunnel.remote)
-
-    function onconnection (localSocket) {
-      const { streams } = channel.userData
-
-      const rawStream = node.createRawStream() // + encryption?
-      rawStream.userData = localSocket
-
-      streams.set(rawStream.id, rawStream)
-      rawStream.on('close', function () {
-        streams.delete(rawStream.id)
-        localSocket.destroy()
-      })
-
-      channel.messages[0].send({ clientId: rawStream.id, serverId: 0 })
-    }
-
-    function onstreamid (data, channel) {
-      const { streams } = channel.userData
-      const { clientId, serverId } = data
-
-      const rawStream = streams.get(clientId)
-      if (!rawStream) throw new Error('Stream not found: ' + clientId)
-
-      DHT.connectRawStream(socket, rawStream, serverId)
-
-      const localSocket = rawStream.userData
-      pump(localSocket, rawStream, localSocket)
-    }
-
+    new LocalTunnel(options.L, { node, socket, mux })
     return
   } else if (options.R) {
-
+    errorAndExit('-R not supported yet')
     return
   }
 
