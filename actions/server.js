@@ -61,6 +61,7 @@ module.exports = async function (options = {}) {
 function onConnection (socket) {
   const node = this.dht
 
+  socket.on('close', () => console.log('Socket disconnect', socket.remotePublicKey.toString('hex')))
   socket.on('error', (error) => console.error(error.code, error))
 
   socket.setKeepAlive(5000)
