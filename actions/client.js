@@ -78,9 +78,9 @@ class LocalTunnel {
 
   static parse (config) {
     const match = config.match(/(?:(.*):)?([\d]+):(?:(.*):)?([\d]+)/i)
-    if (!match[2]) errorAndExit('port is required (address:port:host:hostport)')
-    if (!match[3]) errorAndExit('host is required (address:port:host:hostport)')
-    if (!match[4]) errorAndExit('hostport is required (address:port:host:hostport)')
+    if (!match[2]) errorAndExit('local port is required')
+    if (!match[3]) errorAndExit('remote host is required')
+    if (!match[4]) errorAndExit('remote port is required')
 
     const local = { host: match[1] || '0.0.0.0', port: match[2] }
     const remote = { host: match[3], port: match[4] }
