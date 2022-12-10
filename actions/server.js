@@ -1,19 +1,15 @@
 const fs = require('fs')
-const os = require('os')
 const path = require('path')
 const DHT = require('@hyperswarm/dht')
 const goodbye = require('graceful-goodbye')
-const PTY = require('tt-native')
 const Protomux = require('protomux')
 const c = require('compact-encoding')
 const m = require('../messages.js')
 const readFile = require('read-file-live')
 const tar = require('tar-fs')
-const net = require('net')
-const pump = require('pump')
+const { ShellServer } = require('../lib/shell.js')
+const { LocalTunnelServer } = require('../lib/local-tunnel.js')
 
-const isWin = os.platform() === 'win32'
-const shellFile = isWin ? 'powershell.exe' : (process.env.SHELL || 'bash')
 const EMPTY = Buffer.alloc(0)
 
 module.exports = async function (options = {}) {
@@ -77,62 +73,10 @@ function onConnection (socket) {
   mux.pair({ protocol: 'hypershell', id: null }, function () {
     if (mux.opened({ protocol: 'hypershell', id: null })) return console.log('Protocol (spawn) was already open')
 
-    const channel = mux.createChannel({
-      protocol: 'hypershell',
-      id: null,
-      handshake: m.handshakeSpawn,
-      onopen (handshake) {
-        let pty
-        try {
-          pty = PTY.spawn(handshake.file || shellFile, handshake.args, {
-            cwd: os.homedir(),
-            env: process.env,
-            width: handshake.width,
-            height: handshake.height
-          })
-        } catch (error) {
-          this.messages[3].send(1)
-          this.messages[2].send(Buffer.from(error.toString() + '\n'))
-          this.close()
-          return
-        }
+    const shell = new ShellServer({ node, socket, mux })
+    if (!shell.channel) return console.log('Protocol (spawn) could not been created')
 
-        pty.on('data', (data) => {
-          this.messages[1].send(data)
-        })
-
-        pty.once('exit', (code) => {
-          this.messages[3].send(code)
-        })
-
-        pty.once('close', () => {
-          this.close()
-        })
-
-        this.userData = { pty }
-      },
-      messages: [
-        { encoding: c.buffer, onmessage: onstdin }, // stdin
-        { encoding: c.buffer }, // stdout
-        { encoding: c.buffer }, // stderr
-        { encoding: c.uint }, // exit code
-        { encoding: m.resize, onmessage: onresize } // resize
-      ],
-      onclose () {
-        if (!this.userData) return
-
-        const { pty } = this.userData
-        if (pty) {
-          try {
-            pty.kill('SIGKILL')
-          } catch {} // ignore "Process has exited"
-        }
-      }
-    })
-
-    if (!channel) return console.log('Protocol (spawn) could not been created')
-
-    channel.open({})
+    shell.open()
   })
 
   mux.pair({ protocol: 'hypershell-upload', id: null }, function () {
@@ -227,69 +171,17 @@ function onConnection (socket) {
   mux.pair({ protocol: 'hypershell-tunnel-local', id: null }, function () {
     if (mux.opened({ protocol: 'hypershell-tunnel-local', id: null })) return console.log('Protocol (tunnel-local) was already open')
 
-    const channel = mux.createChannel({
-      protocol: 'hypershell-tunnel-local',
-      id: null,
-      handshake: c.json,
-      onopen (handshake) {
-        this.userData = { node, socket, handshake, streams: new Map() } // + try to not pass { node, socket, handshake }
-      },
-      messages: [
-        { encoding: c.json, onmessage: onstreamid }
-      ],
-      onclose () {
-        if (!this.userData) return
+    const tunnel = new LocalTunnelServer({ node, socket, mux })
+    if (!tunnel.channel) return console.log('Protocol (tunnel-local) could not been created')
 
-        const { streams } = this.userData
-
-        for (const [, stream] of streams) {
-          stream.destroy()
-        }
-      }
-    })
-
-    if (!channel) return console.log('Protocol (tunnel-local) could not been created')
-
-    channel.open({})
+    tunnel.open({})
   })
-}
-
-function onstdin (data, channel) {
-  const { pty } = channel.userData
-  if (data === null) pty.write(EMPTY)
-  else pty.write(data)
-}
-
-function onresize (data, channel) {
-  const { pty } = channel.userData
-  pty.resize(data.width, data.height)
 }
 
 function onupload (data, channel) {
   const { extract } = channel.userData
   if (data.length) extract.write(data)
   else extract.end()
-}
-
-function onstreamid (data, channel) {
-  const { node, socket, handshake, streams } = channel.userData
-  const { clientId } = data
-
-  const rawStream = node.createRawStream()
-
-  streams.set(rawStream.id, rawStream)
-  rawStream.on('close', function () {
-    streams.delete(rawStream.id)
-  })
-
-  channel.messages[0].send({ clientId, serverId: rawStream.id })
-
-  DHT.connectRawStream(socket, rawStream, clientId)
-
-  const remoteSocket = net.connect(handshake.port, handshake.address)
-  rawStream.userData = remoteSocket
-
-  pump(rawStream, remoteSocket, rawStream)
 }
 
 function readAuthorizedPeers (filename) {
