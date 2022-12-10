@@ -8,6 +8,25 @@ const ClientSocket = require('../lib/client-socket.js')
 const pump = require('pump')
 const DHT = require('@hyperswarm/dht')
 
+module.exports = async function (serverPublicKey, options = {}) {
+  const keyfile = path.resolve(options.f)
+
+  if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
+
+  const { node, socket } = ClientSocket({ keyfile, serverPublicKey })
+  const mux = new Protomux(socket) // + what if I create the mux on 'connect' event?
+
+  if (options.L) {
+    new LocalTunnel(options.L, { node, socket, mux })
+    return
+  } else if (options.R) {
+    errorAndExit('-R not supported yet')
+    return
+  }
+
+  new Shell(this.rawArgs, { node, socket, mux })
+}
+
 class LocalTunnel {
   constructor (config, { node, socket, mux }) {
     this.dht = node
@@ -170,25 +189,6 @@ class Shell {
     const variadic = index === -1 ? null : rawArgs.splice(index + 1)
     return variadic || []
   }
-}
-
-module.exports = async function (serverPublicKey, options = {}) {
-  const keyfile = path.resolve(options.f)
-
-  if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
-
-  const { node, socket } = ClientSocket({ keyfile, serverPublicKey })
-  const mux = new Protomux(socket) // + what if I create the mux on 'connect' event?
-
-  if (options.L) {
-    new LocalTunnel(options.L, { node, socket, mux })
-    return
-  } else if (options.R) {
-    errorAndExit('-R not supported yet')
-    return
-  }
-
-  new Shell(this.rawArgs, { node, socket, mux })
 }
 
 function errorAndExit (message) {
