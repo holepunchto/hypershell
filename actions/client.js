@@ -35,7 +35,8 @@ class LocalTunnel {
   }
 
   onopen () {
-    this.ready = listenTCP(this.server, this.config.local.port, this.config.local.host) // + try same port error
+    this.server.listen(this.config.local.port, this.config.local.host)
+    this.ready = waitForServer(server) // + try same port error
 
     this.ready.catch((err) => {
       console.error(err)
@@ -185,19 +186,16 @@ function parseTunnel (tunnel) {
   return { local, remote }
 }
 
-function listenTCP (server, port, address) {
+function waitForServer (server) {
   return new Promise((resolve, reject) => {
     server.on('listening', done)
     server.on('error', done)
+    if (server.listening) done()
 
-    server.listen(port, address)
-
-    function done (err) {
+    function done (error) {
       server.removeListener('listening', done)
       server.removeListener('error', done)
-
-      if (err) reject(err)
-      else resolve()
+      error ? reject(error) : resolve()
     }
   })
 }
