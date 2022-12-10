@@ -66,10 +66,11 @@ function onConnection (socket) {
 
   socket.setKeepAlive(5000)
 
-  goodbye(() => {
+  const ungoodbye = goodbye(() => {
     socket.end()
     return waitForSocketTermination(socket)
   }, 1)
+  socket.once('close', () => ungoodbye())
 
   const mux = new Protomux(socket)
 
