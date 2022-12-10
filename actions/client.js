@@ -55,7 +55,7 @@ class LocalTunnel {
 
   onopen () {
     this.server.listen(this.config.local.port, this.config.local.host)
-    this.ready = waitForServer(server) // + try same port error
+    this.ready = waitForServer(this.server) // + try same port error
 
     this.ready.catch((err) => {
       console.error(err)
