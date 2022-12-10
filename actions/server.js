@@ -235,7 +235,7 @@ function onConnection (socket) {
         this.userData = { node, socket, handshake, streams: new Map() } // + try to not pass { node, socket, handshake }
       },
       messages: [
-        { encoding: c.json, onmessage: onstreamid },
+        { encoding: c.json, onmessage: onstreamid }
       ],
       onclose () {
         if (!this.userData) return

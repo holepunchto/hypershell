@@ -17,14 +17,14 @@ module.exports = async function (serverPublicKey, options = {}) {
   const mux = new Protomux(socket) // + what if I create the mux on 'connect' event?
 
   if (options.L) {
-    new LocalTunnel(options.L, { node, socket, mux })
+    new LocalTunnel(options.L, { node, socket, mux }) // eslint-disable-line no-new
     return
   } else if (options.R) {
     errorAndExit('-R not supported yet')
     return
   }
 
-  new Shell(this.rawArgs, { node, socket, mux })
+  new Shell(this.rawArgs, { node, socket, mux }) // eslint-disable-line no-new
 }
 
 class LocalTunnel {
@@ -40,7 +40,7 @@ class LocalTunnel {
       id: null,
       handshake: c.json,
       messages: [
-        { encoding: c.json, onmessage: this.onstreamid.bind(this) },
+        { encoding: c.json, onmessage: this.onstreamid.bind(this) }
       ],
       onopen: this.onopen.bind(this),
       onclose: this.onclose.bind(this)
