@@ -9,6 +9,7 @@ const readFile = require('read-file-live')
 const tar = require('tar-fs')
 const { ShellServer } = require('../lib/shell.js')
 const { LocalTunnelServer } = require('../lib/local-tunnel.js')
+const { UploadServer } = require('../lib/upload.js')
 
 const EMPTY = Buffer.alloc(0)
 
@@ -82,45 +83,10 @@ function onConnection (socket) {
   mux.pair({ protocol: 'hypershell-upload', id: null }, function () {
     if (mux.opened({ protocol: 'hypershell-upload', id: null })) return console.log('Protocol (upload) was already open')
 
-    const channel = mux.createChannel({
-      protocol: 'hypershell-upload',
-      id: null,
-      handshake: m.handshakeUpload,
-      onopen (handshake) {
-        const { target, isDirectory } = handshake
+    const upload = new UploadServer({ node, socket, mux })
+    if (!upload.channel) return console.log('Protocol (upload) could not been created')
 
-        const dir = isDirectory ? target : path.dirname(target)
-        const extract = tar.extract(dir, {
-          readable: true,
-          writable: true,
-          map (header) {
-            if (!isDirectory) header.name = path.basename(target)
-            return header
-          }
-        })
-
-        extract.once('error', (error) => {
-          this.messages[1].send(error)
-          this.close()
-        })
-
-        extract.once('finish', () => this.close())
-
-        this.userData = { extract }
-      },
-      messages: [
-        null, // no header
-        { encoding: m.error }, // errors
-        { encoding: c.raw, onmessage: onupload } // data
-      ],
-      onclose () {
-        if (this.userData) this.userData.extract.destroy()
-      }
-    })
-
-    if (!channel) return console.log('Protocol (upload) could not been created')
-
-    channel.open({})
+    upload.open()
   })
 
   mux.pair({ protocol: 'hypershell-download', id: null }, function () {
@@ -176,12 +142,6 @@ function onConnection (socket) {
 
     tunnel.open({})
   })
-}
-
-function onupload (data, channel) {
-  const { extract } = channel.userData
-  if (data.length) extract.write(data)
-  else extract.end()
 }
 
 function readAuthorizedPeers (filename) {

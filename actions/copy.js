@@ -6,8 +6,8 @@ const m = require('../messages.js')
 const tar = require('tar-fs')
 const os = require('os')
 const ClientSocket = require('../lib/client-socket.js')
+const { UploadClient } = require('../lib/upload.js')
 
-const EMPTY = Buffer.alloc(0)
 const publicKeyExpr = /^([a-fA-F0-9]{64}|[ybndrfg8ejkmcpqxot1uwisza345h769]{52}):/i
 
 module.exports = async function (sourcePath, targetPath, options = {}) {
@@ -28,53 +28,12 @@ module.exports = async function (sourcePath, targetPath, options = {}) {
     errorAndExit('Invalid source or target path.')
   }
 
-  const { socket } = ClientSocket({ keyfile, serverPublicKey })
+  const { node, socket } = ClientSocket({ keyfile, serverPublicKey })
   const mux = new Protomux(socket)
 
   if (fileOperation === 'upload') {
-    const upload = mux.createChannel({
-      protocol: 'hypershell-upload',
-      id: null,
-      handshake: m.handshakeUpload,
-      messages: [
-        null, // no header
-        { encoding: m.error, onuploaderror }, // errors
-        { encoding: c.raw } // data
-      ],
-      onclose () {
-        socket.end()
-
-        if (upload.userData.pack) upload.userData.pack.destroy()
-      }
-    })
-
-    const source = path.resolve(resolveHomedir(sourcePath))
-
-    try {
-      const st = fs.lstatSync(source)
-
-      upload.open({
-        target: targetPath,
-        isDirectory: st.isDirectory()
-      })
-    } catch (error) {
-      if (error.code === 'ENOENT') console.log(source + ': No such file or directory')
-      else console.error(error.message)
-
-      socket.destroy()
-      return
-    }
-
-    const pack = tar.pack(source)
-    upload.userData = { pack }
-
-    pack.once('error', function (error) {
-      console.error(error.message)
-      upload.close()
-    })
-
-    pack.on('data', (chunk) => upload.messages[2].send(chunk))
-    pack.once('end', () => upload.messages[2].send(EMPTY))
+    const upload = new UploadClient({ sourcePath, targetPath }, { node, socket, mux })
+    upload.open()
   } else {
     const download = mux.createChannel({
       protocol: 'hypershell-download',
@@ -106,11 +65,6 @@ module.exports = async function (sourcePath, targetPath, options = {}) {
       target
     }
   }
-}
-
-function onuploaderror (data, channel) {
-  console.error('hypershell-server:', data)
-  channel.close()
 }
 
 function ondownloadheader (data, channel) {
