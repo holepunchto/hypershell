@@ -321,13 +321,6 @@ function errorAndExit (message) {
   process.exit(1)
 }
 
-function randomIntExcept (current) {
-  while (true) {
-    const id = (Math.random() * 0x100000000) >>> 0
-    if (id !== current) return id
-  }
-}
-
 function waitForSocketTermination (socket) {
   return new Promise((resolve) => {
     const isClosed = socket.rawStream._closed
