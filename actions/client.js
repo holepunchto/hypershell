@@ -37,7 +37,8 @@ class LocalTunnel {
   onopen () {
     this.ready = listenTCP(this.server, this.config.local.port, this.config.local.host) // + try same port error
 
-    this.ready.catch(() => {
+    this.ready.catch((err) => {
+      console.error(err)
       this.channel.close()
     })
   }
