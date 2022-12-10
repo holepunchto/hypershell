@@ -91,6 +91,87 @@ class LocalTunnel {
   }
 }
 
+class Shell {
+  constructor (rawArgs, { node, socket, mux }) {
+    this.dht = node
+    this.socket = socket
+    this.mux = mux
+
+    this.channel = mux.createChannel({
+      protocol: 'hypershell',
+      id: null,
+      handshake: m.handshakeSpawn,
+      messages: [
+        { encoding: c.buffer }, // stdin
+        { encoding: c.buffer, onmessage: this.onstdout.bind(this) },
+        { encoding: c.buffer, onmessage: this.onstderr.bind(this) },
+        { encoding: c.uint, onmessage: this.onexitcode.bind(this) },
+        { encoding: m.resize }
+      ],
+      onclose () {
+        socket.end()
+      }
+    })
+
+    const spawn = Shell.parseVariadic(rawArgs)
+    const [command = '', ...args] = spawn
+
+    this.channel.open({
+      file: command || '',
+      args: args || [],
+      width: process.stdout.columns,
+      height: process.stdout.rows
+    })
+
+    this.setup()
+  }
+
+  setup () {
+    this.onstdin = this.onstdin.bind(this)
+    this.onresize = this.onresize.bind(this)
+    this.onsocketclose = this.onsocketclose.bind(this)
+
+    if (process.stdin.isTTY) process.stdin.setRawMode(true)
+    process.stdin.on('data', this.onstdin)
+    process.stdout.on('resize', this.onresize)
+
+    this.socket.once('close', this.onsocketclose)
+  }
+
+  onstdin (data) {
+    this.channel.messages[0].send(data)
+  }
+
+  onstdout (data, c) {
+    process.stdout.write(data)
+  }
+
+  onstderr (data, c) {
+    process.stderr.write(data)
+  }
+
+  onexitcode (code, c) {
+    process.exitCode = code
+  }
+
+  onresize () {
+    this.channel.messages[4].send({
+      width: process.stdout.columns,
+      height: process.stdout.rows
+    })
+  }
+
+  onsocketclose () {
+    process.exit()
+  }
+
+  static parseVariadic (rawArgs) {
+    const index = rawArgs.indexOf('--')
+    const variadic = index === -1 ? null : rawArgs.splice(index + 1)
+    return variadic || []
+  }
+}
+
 module.exports = async function (serverPublicKey, options = {}) {
   const keyfile = path.resolve(options.f)
 
@@ -107,83 +188,12 @@ module.exports = async function (serverPublicKey, options = {}) {
     return
   }
 
-  const channel = mux.createChannel({
-    protocol: 'hypershell',
-    id: null,
-    handshake: m.handshakeSpawn,
-    messages: [
-      { encoding: c.buffer }, // stdin
-      { encoding: c.buffer, onmessage: onstdout }, // stdout
-      { encoding: c.buffer, onmessage: onstderr }, // stderr
-      { encoding: c.uint, onmessage: onexitcode }, // exit code
-      { encoding: m.resize } // resize
-    ],
-    onclose () {
-      socket.end()
-    }
-  })
-
-  const spawn = parseVariadic(this.rawArgs)
-  const [command = '', ...args] = spawn
-
-  channel.open({
-    file: command || '',
-    args: args || [],
-    width: process.stdout.columns,
-    height: process.stdout.rows
-  })
-
-  if (process.stdin.isTTY) process.stdin.setRawMode(true)
-
-  process.stdin.on('data', function (data) {
-    channel.messages[0].send(data)
-  })
-
-  function onstdout (data) {
-    process.stdout.write(data)
-  }
-
-  function onstderr (data) {
-    process.stderr.write(data)
-  }
-
-  function onexitcode (code) {
-    process.exitCode = code
-  }
-
-  process.stdout.on('resize', function () {
-    channel.messages[4].send({
-      width: process.stdout.columns,
-      height: process.stdout.rows
-    })
-  })
-
-  socket.once('close', function () {
-    process.exit()
-  })
+  new Shell(this.rawArgs, { node, socket, mux })
 }
 
 function errorAndExit (message) {
   console.error('Error:', message)
   process.exit(1)
-}
-
-function parseVariadic (rawArgs) {
-  const index = rawArgs.indexOf('--')
-  const variadic = index === -1 ? null : rawArgs.splice(index + 1)
-  return variadic || []
-}
-
-function parseTunnel (tunnel) {
-  const match = tunnel.match(/(?:(.*):)?([\d]+):(?:(.*):)?([\d]+)/i)
-  if (!match[2]) errorAndExit('port is required (address:port:host:hostport)')
-  if (!match[3]) errorAndExit('host is required (address:port:host:hostport)')
-  if (!match[4]) errorAndExit('hostport is required (address:port:host:hostport)')
-
-  const local = { host: match[1] || '0.0.0.0', port: match[2] }
-  const remote = { host: match[3], port: match[4] }
-
-  return { local, remote }
 }
 
 function waitForServer (server) {
