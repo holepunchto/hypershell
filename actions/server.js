@@ -74,7 +74,9 @@ function onConnection (socket) {
 
   const mux = new Protomux(socket)
 
-  makeProtocol(mux, { protocol: 'hypershell', id: null, _onlyPair: true }, function () {
+  mux.pair({ protocol: 'hypershell', id: null }, function () {
+    if (mux.opened({ protocol: 'hypershell', id: null })) return console.log('Protocol (spawn) was already open')
+
     const channel = mux.createChannel({
       protocol: 'hypershell',
       id: null,
@@ -128,12 +130,14 @@ function onConnection (socket) {
       }
     })
 
-    if (!channel) return
+    if (!channel) return console.log('Protocol (spawn) could not been created')
 
     channel.open({})
   })
 
-  makeProtocol(mux, { protocol: 'hypershell-upload', id: null, _onlyPair: true }, function () {
+  mux.pair({ protocol: 'hypershell-upload', id: null }, function () {
+    if (mux.opened({ protocol: 'hypershell-upload', id: null })) return console.log('Protocol (upload) was already open')
+
     const channel = mux.createChannel({
       protocol: 'hypershell-upload',
       id: null,
@@ -170,12 +174,14 @@ function onConnection (socket) {
       }
     })
 
-    if (!channel) return
+    if (!channel) return console.log('Protocol (upload) could not been created')
 
     channel.open({})
   })
 
-  makeProtocol(mux, { protocol: 'hypershell-download', id: null, _onlyPair: true }, function () {
+  mux.pair({ protocol: 'hypershell-download', id: null }, function () {
+    if (mux.opened({ protocol: 'hypershell-download', id: null })) return console.log('Protocol (download) was already open')
+
     const channel = mux.createChannel({
       protocol: 'hypershell-download',
       id: null,
@@ -213,12 +219,14 @@ function onConnection (socket) {
       }
     })
 
-    if (!channel) return
+    if (!channel) return console.log('Protocol (download) could not been created')
 
     channel.open({})
   })
 
-  makeProtocol(mux, { protocol: 'hypershell-tunnel-local', id: null, _onlyPair: true }, function () {
+  mux.pair({ protocol: 'hypershell-tunnel-local', id: null }, function () {
+    if (mux.opened({ protocol: 'hypershell-tunnel-local', id: null })) return console.log('Protocol (tunnel-local) was already open')
+
     const channel = mux.createChannel({
       protocol: 'hypershell-tunnel-local',
       id: null,
@@ -240,7 +248,7 @@ function onConnection (socket) {
       }
     })
 
-    if (!channel) return
+    if (!channel) return console.log('Protocol (tunnel-local) could not been created')
 
     channel.open({})
   })
@@ -361,22 +369,4 @@ function waitForSocketTermination (socket) {
       resolve()
     }
   })
-}
-
-function makeProtocol (mux, opts, cb) {
-  mux.pair(opts, callback)
-
-  if (!opts._onlyPair) {
-    mux.stream.opened.then(function (opened) {
-      if (opened) callback()
-    })
-  }
-
-  function callback () {
-    if (!mux.opened(opts)) cb()
-  }
-
-  return function () {
-    mux.unpair(opts)
-  }
 }
