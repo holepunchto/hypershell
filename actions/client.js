@@ -153,7 +153,6 @@ class Shell {
     if (process.stdin.isTTY) process.stdin.setRawMode(true)
     process.stdin.on('data', this.onstdin)
     process.stdout.on('resize', this.onresize)
-
     this.socket.once('close', this.onsocketclose)
   }
 
