@@ -307,7 +307,7 @@ function waitForSocketTermination (socket) {
     const isReadableEnded = socket.rawStream._readableState.ended
     const isWritableEnded = socket.rawStream._writableState.ended
 
-    console.log('socket term', { isClosed, isReadableEnded, isWritableEnded })
+    // console.log('socket term', { isClosed, isReadableEnded, isWritableEnded })
     // waitForSocketTermination { isClosed: false, isReadableEnded: true, isWritableEnded: true }
     // + that doesn't trigger a close event?
 
@@ -327,12 +327,12 @@ function waitForSocketTermination (socket) {
     socket.on('close', onclose)
 
     function onend () {
-      console.log('socket term (onend)', { isClosed, isReadableEnded, isWritableEnded })
+      // console.log('socket term (onend)', { isClosed, isReadableEnded, isWritableEnded })
       onterm()
     }
 
     function onclose () {
-      console.log('socket term (onclose)', { isClosed, isReadableEnded, isWritableEnded })
+      // console.log('socket term (onclose)', { isClosed, isReadableEnded, isWritableEnded })
       onterm()
     }
 
