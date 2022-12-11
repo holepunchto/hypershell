@@ -20,16 +20,16 @@ module.exports = async function (options = {}) {
   const unwatchFirewall = readFile(firewall, function (buf) {
     allowed = readAuthorizedPeers(buf)
   })
-  goodbye(() => unwatchFirewall(), 2)
+  goodbye(() => unwatchFirewall(), 4)
 
   const seed = Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
   const keyPair = DHT.keyPair(seed)
 
   const node = new DHT()
-  goodbye(() => node.destroy(), 2)
+  goodbye(() => node.destroy(), 3)
 
   const server = node.createServer({ firewall: onFirewall })
-  goodbye(() => server.close(), 1)
+  goodbye(() => server.close(), 2)
 
   server.on('connection', onConnection)
 
