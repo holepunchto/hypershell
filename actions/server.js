@@ -4,6 +4,7 @@ const DHT = require('@hyperswarm/dht')
 const goodbye = require('graceful-goodbye')
 const Protomux = require('protomux')
 const readFile = require('read-file-live')
+const { waitForSocketTermination } = require('../lib/client-socket.js')
 const { ShellServer } = require('../lib/shell.js')
 const { LocalTunnelServer } = require('../lib/local-tunnel.js')
 const { UploadServer } = require('../lib/upload.js')
@@ -132,47 +133,4 @@ function readAuthorizedPeers (filename) {
 function errorAndExit (message) {
   console.error('Error:', message)
   process.exit(1)
-}
-
-function waitForSocketTermination (socket) {
-  return new Promise((resolve) => {
-    const isClosed = socket.rawStream._closed
-    const isReadableEnded = socket.rawStream._readableState.ended
-    const isWritableEnded = socket.rawStream._writableState.ended
-
-    // console.log('socket term', { isClosed, isReadableEnded, isWritableEnded })
-    // waitForSocketTermination { isClosed: false, isReadableEnded: true, isWritableEnded: true }
-    // + that doesn't trigger a close event?
-
-    if (isReadableEnded && isWritableEnded) {
-      resolve()
-      return
-    }
-
-    // + timeout end destroy?
-
-    if (isClosed) {
-      resolve()
-      return
-    }
-
-    socket.on('end', onend)
-    socket.on('close', onclose)
-
-    function onend () {
-      // console.log('socket term (onend)', { isClosed, isReadableEnded, isWritableEnded })
-      onterm()
-    }
-
-    function onclose () {
-      // console.log('socket term (onclose)', { isClosed, isReadableEnded, isWritableEnded })
-      onterm()
-    }
-
-    function onterm () {
-      socket.removeListener('end', onend)
-      socket.removeListener('close', onclose)
-      resolve()
-    }
-  })
 }
