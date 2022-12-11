@@ -65,6 +65,8 @@ function onConnection (socket) {
     return waitForSocketTermination(socket)
   }, 1)
   socket.once('close', () => ungoodbye())
+  // socket.once('end', () => console.log('[server] socket on end'))
+  // socket.once('close', () => console.log('[server] socket on close'))
 
   const mux = new Protomux(socket)
   // + allow opening multiple protocols from the same socket?
