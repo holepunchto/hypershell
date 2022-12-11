@@ -1,12 +1,9 @@
 const fs = require('fs')
 const path = require('path')
 const Protomux = require('protomux')
-const c = require('compact-encoding')
-const m = require('../messages.js')
-const tar = require('tar-fs')
-const os = require('os')
-const ClientSocket = require('../lib/client-socket.js')
+const { ClientSocket } = require('../lib/client-socket.js')
 const { UploadClient } = require('../lib/upload.js')
+const { DownloadClient } = require('../lib/download.js')
 
 const publicKeyExpr = /^([a-fA-F0-9]{64}|[ybndrfg8ejkmcpqxot1uwisza345h769]{52}):/i
 
@@ -35,75 +32,9 @@ module.exports = async function (sourcePath, targetPath, options = {}) {
     const upload = new UploadClient({ sourcePath, targetPath }, { node, socket, mux })
     upload.open()
   } else {
-    const download = mux.createChannel({
-      protocol: 'hypershell-download',
-      id: null,
-      handshake: m.handshakeDownload,
-      messages: [
-        { encoding: m.downloadHeader, onmessage: ondownloadheader }, // header
-        { encoding: m.error, onmessage: ondownloaderror }, // errors
-        { encoding: c.raw, onmessage: ondownload } // data
-      ],
-      onclose () {
-        socket.end()
-
-        if (!download.userData) return
-
-        const { extract } = download.userData
-        if (extract) extract.destroy()
-      }
-    })
-
-    const target = path.resolve(resolveHomedir(targetPath))
-
-    download.open({
-      source: sourcePath
-    })
-
-    download.userData = {
-      extract: null,
-      target
-    }
+    const download = new DownloadClient({ sourcePath, targetPath }, { node, socket, mux })
+    download.open()
   }
-}
-
-function ondownloadheader (data, channel) {
-  const { isDirectory } = data
-
-  const dir = isDirectory ? channel.userData.target : path.dirname(channel.userData.target)
-  const opts = {
-    readable: true,
-    writable: true,
-    map (header) {
-      if (!isDirectory) header.name = path.basename(channel.userData.target)
-      return header
-    }
-  }
-
-  const extract = tar.extract(dir, opts)
-  channel.userData.extract = extract
-
-  extract.once('error', function (error) {
-    console.error(error)
-    channel.close()
-  })
-
-  extract.once('finish', function () {
-    channel.close()
-  })
-}
-
-function ondownloaderror (data, channel) {
-  if (data.code === 'ENOENT') console.error('hypershell-server:', data.path + ': No such file or directory')
-  else console.error(data.message)
-
-  channel.close()
-}
-
-function ondownload (data, channel) {
-  const { extract } = channel.userData
-  if (data.length) extract.write(data)
-  else extract.end()
 }
 
 function errorAndExit (message) {
@@ -119,12 +50,4 @@ function parseRemotePath (str) {
 
   const isName = str[0] === '@'
   return [str.slice(isName ? 1 : 0, i), str.slice(i + 1)] // [host, path]
-}
-
-// Based on expand-home-dir
-function resolveHomedir (str) {
-  if (!str) return str
-  if (str === '~') return os.homedir()
-  if (str.slice(0, 2) !== '~/') return str
-  return path.join(os.homedir(), str.slice(2))
 }

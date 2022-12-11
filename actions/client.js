@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const Protomux = require('protomux')
-const ClientSocket = require('../lib/client-socket.js')
+const { ClientSocket } = require('../lib/client-socket.js')
 const { ShellClient } = require('../lib/shell.js')
 const { LocalTunnelClient } = require('../lib/local-tunnel.js')
 
