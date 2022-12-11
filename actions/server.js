@@ -3,15 +3,11 @@ const path = require('path')
 const DHT = require('@hyperswarm/dht')
 const goodbye = require('graceful-goodbye')
 const Protomux = require('protomux')
-const c = require('compact-encoding')
-const m = require('../messages.js')
 const readFile = require('read-file-live')
-const tar = require('tar-fs')
 const { ShellServer } = require('../lib/shell.js')
 const { LocalTunnelServer } = require('../lib/local-tunnel.js')
 const { UploadServer } = require('../lib/upload.js')
-
-const EMPTY = Buffer.alloc(0)
+const { DownloadServer } = require('../lib/download.js')
 
 module.exports = async function (options = {}) {
   const keyfile = path.resolve(options.f)
@@ -70,6 +66,7 @@ function onConnection (socket) {
   socket.once('close', () => ungoodbye())
 
   const mux = new Protomux(socket)
+  // + allow opening multiple protocols from the same socket?
 
   mux.pair({ protocol: 'hypershell', id: null }, function () {
     if (mux.opened({ protocol: 'hypershell', id: null })) return console.log('Protocol (spawn) was already open')
@@ -92,46 +89,10 @@ function onConnection (socket) {
   mux.pair({ protocol: 'hypershell-download', id: null }, function () {
     if (mux.opened({ protocol: 'hypershell-download', id: null })) return console.log('Protocol (download) was already open')
 
-    const channel = mux.createChannel({
-      protocol: 'hypershell-download',
-      id: null,
-      handshake: m.handshakeDownload,
-      onopen (handshake) {
-        const { source } = handshake
+    const download = new DownloadServer({ node, socket, mux })
+    if (!download.channel) return console.log('Protocol (download) could not been created')
 
-        try {
-          const st = fs.lstatSync(source)
-          this.messages[0].send({ isDirectory: st.isDirectory() })
-        } catch (error) {
-          this.messages[1].send(error)
-          this.close()
-          return
-        }
-
-        const pack = tar.pack(source)
-        this.userData = { pack }
-
-        pack.once('error', (error) => {
-          this.messages[1].send(error)
-          this.close()
-        })
-
-        pack.on('data', (chunk) => this.messages[2].send(chunk))
-        pack.once('end', () => this.messages[2].send(EMPTY))
-      },
-      messages: [
-        { encoding: m.downloadHeader }, // header
-        { encoding: m.error }, // errors
-        { encoding: c.raw } // data
-      ],
-      onclose () {
-        if (this.userData) this.userData.pack.destroy()
-      }
-    })
-
-    if (!channel) return console.log('Protocol (download) could not been created')
-
-    channel.open({})
+    download.open()
   })
 
   mux.pair({ protocol: 'hypershell-tunnel-local', id: null }, function () {
