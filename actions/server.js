@@ -20,7 +20,7 @@ module.exports = async function (options = {}) {
   const unwatchFirewall = readFile(firewall, function (buf) {
     allowed = readAuthorizedPeers(buf)
   })
-  goodbye(() => unwatchFirewall(), 4)
+  goodbye(() => unwatchFirewall(), 3)
 
   const seed = Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
   const keyPair = DHT.keyPair(seed)
