@@ -6,9 +6,9 @@ const Protomux = require('protomux')
 const readFile = require('read-file-live')
 const { waitForSocketTermination } = require('../lib/client-socket.js')
 const { ShellServer } = require('../lib/shell.js')
-const { LocalTunnelServer } = require('../lib/local-tunnel.js')
 const { UploadServer } = require('../lib/upload.js')
 const { DownloadServer } = require('../lib/download.js')
+const { LocalTunnelServer } = require('../lib/local-tunnel.js')
 
 module.exports = async function (options = {}) {
   const keyfile = path.resolve(options.f)
