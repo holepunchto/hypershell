@@ -25,6 +25,7 @@
   "homepage": "https://github.com/holepunchto/hypershell",
   "dependencies": {
     "@hyperswarm/dht": "^6.3.0",
+    "@hyperswarm/secret-stream": "^6.1.0",
     "commander": "^9.4.1",
     "compact-encoding": "^2.11.0",
     "graceful-goodbye": "^1.1.0",
