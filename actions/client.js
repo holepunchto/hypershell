@@ -10,7 +10,7 @@ module.exports = async function (serverPublicKey, options = {}) {
 
   if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
 
-  const { node, socket } = ClientSocket({ keyfile, serverPublicKey })
+  const { node, socket } = ClientSocket({ keyfile, serverPublicKey, testnet: options.testnet })
   const mux = new Protomux(socket) // + what if I create the mux on 'connect' event?
 
   if (options.L) {

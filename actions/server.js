@@ -25,7 +25,7 @@ module.exports = async function (options = {}) {
   const seed = Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
   const keyPair = DHT.keyPair(seed)
 
-  const node = new DHT()
+  const node = new DHT({ bootstrap: options.testnet ? [{ host: '127.0.0.1', port: 49737 }] : undefined })
   goodbye(() => node.destroy(), 3)
 
   const server = node.createServer({ firewall: onFirewall })

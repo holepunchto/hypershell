@@ -14,6 +14,7 @@ program
   .option('-R <[address:]port:host:hostport>', 'Remote port forwarding.')
   // .option('--key <hex or z32>', 'Inline key for the client.')
   // .option('--connect <server public key>', 'Specifies the filename of the server public key')
+  .option('--testnet', 'Use a local testnet.', false)
   .action(require('./actions/client.js'))
 
 program.parseAsync()

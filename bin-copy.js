@@ -12,6 +12,7 @@ program
   .argument('<target>', 'Target')
   .option('-f <filename>', 'Filename of the client seed key.', path.join(SHELLDIR, 'peer'))
   // .option('--key <hex or z32>', 'Inline key for the client.')
+  .option('--testnet', 'Use a local testnet.', false)
   .action(require('./actions/copy.js'))
 
 program.parseAsync()
