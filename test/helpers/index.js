@@ -18,6 +18,7 @@ module.exports = {
   BIN_CLIENT,
   create,
   spawnServer,
+  spawnClient,
   keygen,
   addAuthorizedPeer,
   sleep,
@@ -49,7 +50,7 @@ async function create (t) {
 }
 
 async function spawnServer (t, { serverkey, firewall }) {
-  const server = spawn(BIN_SERVER, ['-f', serverkey, '--firewall', firewall, '--testnet'], { timeout: 15000 })
+  const server = spawn(BIN_SERVER, ['-f', serverkey, '--firewall', firewall, '--testnet'], { timeout: 10000 })
   t.teardown(() => server.kill())
 
   server.stdout.setEncoding('utf8')
@@ -62,6 +63,21 @@ async function spawnServer (t, { serverkey, firewall }) {
   await waitForServerReady(server)
 
   return server
+}
+
+async function spawnClient (t, serverPublicKey, { clientkey }) {
+  const client = spawn(BIN_CLIENT, [serverPublicKey, '-f', clientkey, '--testnet'], { timeout: 10000 })
+  t.teardown(() => client.kill())
+
+  client.stdout.setEncoding('utf8')
+  client.stderr.setEncoding('utf8')
+
+  client.on('error', (error) => t.fail('client error: ' + error.message))
+  client.stderr.on('data', (data) => t.fail('client stderr: ' + data))
+
+  await waitForProcess(client)
+
+  return client
 }
 
 function keygen (keyfile) {
