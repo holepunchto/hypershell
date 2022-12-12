@@ -1,7 +1,7 @@
 const test = require('brittle')
 const path = require('path')
 const fs = require('fs')
-const { create, spawnServer, spawnClient, spawnCopy, spawnKeygen } = require('./helpers/index.js')
+const { create, spawnKeygen, spawnServer, spawnClient, spawnCopy } = require('./helpers/index.js')
 
 test('keygen', async function (t) {
   t.plan(5)

@@ -54,6 +54,21 @@ async function create (t) {
 
 // + should require to pass the args array, and just automatically append --testnet
 
+async function spawnKeygen (t, { keyfile }) {
+  const sp = spawn(BIN_KEYGEN, ['-f', keyfile], { timeout: 10000 })
+  t.teardown(() => sp.kill())
+
+  sp.stdout.setEncoding('utf8')
+  sp.stderr.setEncoding('utf8')
+
+  sp.on('error', (error) => t.fail('keygen error: ' + error.message))
+  sp.stderr.on('data', (data) => t.fail('keygen stderr: ' + data))
+
+  await waitForProcess(sp)
+
+  return sp
+}
+
 async function spawnServer (t, { serverkey, firewall }) {
   const sp = spawn(BIN_SERVER, ['-f', serverkey, '--firewall', firewall, '--testnet'], { timeout: 10000 })
   t.teardown(() => sp.kill())
@@ -94,21 +109,6 @@ async function spawnCopy (t, source, target, { clientkey }) {
 
   sp.on('error', (error) => t.fail('copy error: ' + error.message))
   sp.stderr.on('data', (data) => t.fail('copy stderr: ' + data))
-
-  await waitForProcess(sp)
-
-  return sp
-}
-
-async function spawnKeygen (t, { keyfile }) {
-  const sp = spawn(BIN_KEYGEN, ['-f', keyfile], { timeout: 10000 })
-  t.teardown(() => sp.kill())
-
-  sp.stdout.setEncoding('utf8')
-  sp.stderr.setEncoding('utf8')
-
-  sp.on('error', (error) => t.fail('keygen error: ' + error.message))
-  sp.stderr.on('data', (data) => t.fail('keygen stderr: ' + data))
 
   await waitForProcess(sp)
 
