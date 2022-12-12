@@ -15,7 +15,8 @@ module.exports = {
   BIN_SERVER,
   BIN_CLIENT,
   createTmpDir,
-  create
+  create,
+  sleep
 }
 
 function createTmpDir (t) {
@@ -51,4 +52,8 @@ async function create (t) {
   const serverKeyPair = DHT.keyPair(serverseed)
 
   return { root, clientkey, serverkey, firewall, swarm, clientKeyPair, serverKeyPair }
+}
+
+function sleep (ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
