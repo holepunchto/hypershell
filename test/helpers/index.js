@@ -6,9 +6,9 @@ const { spawnSync } = require('child_process')
 const createTestnet = require('@hyperswarm/testnet')
 const DHT = require('@hyperswarm/dht')
 
-const BIN_KEYGEN = path.join(__dirname, '..', '..', 'bin-keygen.js')
-const BIN_SERVER = path.join(__dirname, '..', '..', 'bin-server.js')
-const BIN_CLIENT = path.join(__dirname, '..', '..', 'bin-client.js')
+const BIN_KEYGEN = path.join(__dirname, '..', '..', 'bin/keygen.js')
+const BIN_SERVER = path.join(__dirname, '..', '..', 'bin/server.js')
+const BIN_CLIENT = path.join(__dirname, '..', '..', 'bin/client.js')
 
 module.exports = {
   BIN_KEYGEN,
