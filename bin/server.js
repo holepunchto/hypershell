@@ -1,16 +1,31 @@
+#!/usr/bin/env node
+
 const fs = require('fs')
 const path = require('path')
+const { Command } = require('commander')
 const DHT = require('@hyperswarm/dht')
 const goodbye = require('graceful-goodbye')
 const Protomux = require('protomux')
 const readFile = require('read-file-live')
+const { SHELLDIR } = require('../constants.js')
 const { waitForSocketTermination } = require('../lib/client-socket.js')
 const { ShellServer } = require('../lib/shell.js')
 const { UploadServer } = require('../lib/upload.js')
 const { DownloadServer } = require('../lib/download.js')
 const { LocalTunnelServer } = require('../lib/local-tunnel.js')
 
-module.exports = async function (options = {}) {
+const program = new Command()
+
+program
+  .description('Create a P2P shell server.')
+  .option('-f <filename>', 'Filename of the server seed key.', path.join(SHELLDIR, 'peer'))
+  // .option('--key <hex or z32>', 'Inline key for the server.')
+  .option('--firewall <filename>', 'List of allowed public keys.', path.join(SHELLDIR, 'authorized_peers'))
+  .option('--testnet', 'Use a local testnet.', false)
+  .action(cmd)
+  .parseAsync()
+
+async function cmd (options = {}) {
   const keyfile = path.resolve(options.f)
   const firewall = path.resolve(options.firewall)
 

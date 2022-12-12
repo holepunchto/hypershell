@@ -1,13 +1,29 @@
+#!/usr/bin/env node
+
 const fs = require('fs')
 const path = require('path')
 const Protomux = require('protomux')
+const { Command } = require('commander')
+const { SHELLDIR } = require('../constants.js')
 const { ClientSocket } = require('../lib/client-socket.js')
 const { UploadClient } = require('../lib/upload.js')
 const { DownloadClient } = require('../lib/download.js')
 
 const publicKeyExpr = /^([a-fA-F0-9]{64}|[ybndrfg8ejkmcpqxot1uwisza345h769]{52}):/i
 
-module.exports = async function (sourcePath, targetPath, options = {}) {
+const program = new Command()
+
+program
+  .description('Transfers files using a P2P shell server as transport.')
+  .argument('<source>', 'Source')
+  .argument('<target>', 'Target')
+  .option('-f <filename>', 'Filename of the client seed key.', path.join(SHELLDIR, 'peer'))
+  // .option('--key <hex or z32>', 'Inline key for the client.')
+  .option('--testnet', 'Use a local testnet.', false)
+  .action(cmd)
+  .parseAsync()
+
+async function cmd (sourcePath, targetPath, options = {}) {
   const fileOperation = sourcePath[0] === '@' || publicKeyExpr.test(sourcePath) ? 'download' : 'upload'
   let serverPublicKey = null
 

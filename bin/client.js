@@ -1,11 +1,29 @@
-const fs = require('fs')
+#!/usr/bin/env node
+
 const path = require('path')
+const fs = require('fs')
+const { Command } = require('commander')
 const Protomux = require('protomux')
+const { SHELLDIR } = require('../constants.js')
 const { ClientSocket } = require('../lib/client-socket.js')
 const { ShellClient } = require('../lib/shell.js')
 const { LocalTunnelClient } = require('../lib/local-tunnel.js')
 
-module.exports = async function (serverPublicKey, options = {}) {
+const program = new Command()
+
+program
+  .description('Connect to a P2P shell.')
+  .argument('<server public key or name>', 'Public key or name of the server')
+  .option('-f <filename>', 'Filename of the client seed key.', path.join(SHELLDIR, 'peer'))
+  .option('-L <[address:]port:host:hostport>', 'Local port forwarding.')
+  .option('-R <[address:]port:host:hostport>', 'Remote port forwarding.')
+  // .option('--key <hex or z32>', 'Inline key for the client.')
+  // .option('--connect <server public key>', 'Specifies the filename of the server public key')
+  .option('--testnet', 'Use a local testnet.', false)
+  .action(cmd)
+  .parseAsync()
+
+async function cmd (serverPublicKey, options = {}) {
   const keyfile = path.resolve(options.f)
 
   if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
