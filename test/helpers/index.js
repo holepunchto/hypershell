@@ -29,7 +29,7 @@ async function create (t) {
   const root = createTmpDir(t)
   const clientkey = path.join(root, 'peer-client')
   const serverkey = path.join(root, 'peer-server')
-  const authorized_peers = path.join(root, 'authorized_peers')
+  const firewall = path.join(root, 'authorized_peers')
 
   // + check more / ensure (or just create them manually actually via fs?)
   spawnSync(BIN_KEYGEN, ['-f', clientkey])
@@ -37,7 +37,7 @@ async function create (t) {
 
   const clientseed = Buffer.from(fs.readFileSync(clientkey, 'utf8'), 'hex')
   const clientKeyPair = DHT.keyPair(clientseed)
-  fs.writeFileSync(authorized_peers, '# <public key>\n' + clientKeyPair.publicKey.toString('hex') + '\n')
+  fs.writeFileSync(firewall, '# <public key>\n' + clientKeyPair.publicKey.toString('hex') + '\n')
 
   const swarm = await createTestnet(3, { host: '127.0.0.1', port: 49737, teardown: t.teardown })
 
@@ -50,5 +50,5 @@ async function create (t) {
   const serverseed = Buffer.from(fs.readFileSync(serverkey, 'utf8'), 'hex')
   const serverKeyPair = DHT.keyPair(serverseed)
 
-  return { root, clientkey, serverkey, authorized_peers, swarm, clientKeyPair, serverKeyPair }
+  return { root, clientkey, serverkey, firewall, swarm, clientKeyPair, serverKeyPair }
 }

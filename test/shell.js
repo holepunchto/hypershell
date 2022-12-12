@@ -1,16 +1,14 @@
 const test = require('brittle')
-const path = require('path')
-const fs = require('fs')
 const { spawn } = require('child_process')
 const { create, BIN_SERVER, BIN_CLIENT } = require('./helpers/index.js')
-const DHT = require('@hyperswarm/dht')
+// const DHT = require('@hyperswarm/dht')
 
 test('basic shell', async function (t) {
   t.plan(6)
 
-  const { root, clientkey, serverkey, authorized_peers, serverKeyPair } = await create(t)
+  const { clientkey, serverkey, firewall, serverKeyPair } = await create(t)
 
-  const server = spawn(BIN_SERVER, ['-f', serverkey, '--firewall', authorized_peers, '--testnet'], { timeout: 15000 })
+  const server = spawn(BIN_SERVER, ['-f', serverkey, '--firewall', firewall, '--testnet'], { timeout: 15000 })
   t.teardown(() => server.kill())
 
   server.stdout.setEncoding('utf8')
@@ -102,6 +100,6 @@ function waitForProcess (child) {
   })
 }
 
-function sleep (ms) {
+/* function sleep (ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
-}
+} */
