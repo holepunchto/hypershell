@@ -16,11 +16,10 @@ test('basic keygen', async function (t) {
 
   keygen.stdout.on('data', (data) => {
     if (data.indexOf('Generating key') > -1) t.pass('generating key')
-    if (data.indexOf('Your key has been saved') > -1) {
-      t.pass('key saved')
-      t.ok(fs.existsSync(keyfile))
-    }
+    if (data.indexOf('Your key has been saved') > -1) t.pass('key saved')
   })
+
+  keygen.on('close', () => t.ok(fs.existsSync(keyfile)))
 })
 
 test('basic shell', async function (t) {
