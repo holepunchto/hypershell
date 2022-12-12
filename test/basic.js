@@ -1,19 +1,25 @@
 const test = require('brittle')
 const path = require('path')
+const fs = require('fs')
 const { create, spawnServer, spawnClient, spawnKeygen } = require('./helpers/index.js')
 
 test('basic keygen', async function (t) {
-  t.plan(3)
+  t.plan(5)
 
   const { root } = await create(t)
   const keyfile = path.join(root, 'peer-random')
+
+  t.absent(fs.existsSync(keyfile))
 
   const keygen = await spawnKeygen(t, { keyfile })
   keygen.on('close', (code) => t.pass('keygen closed: ' + code))
 
   keygen.stdout.on('data', (data) => {
     if (data.indexOf('Generating key') > -1) t.pass('generating key')
-    if (data.indexOf('Your key has been saved') > -1) t.pass('key saved')
+    if (data.indexOf('Your key has been saved') > -1) {
+      t.pass('key saved')
+      t.ok(fs.existsSync(keyfile))
+    }
   })
 })
 
