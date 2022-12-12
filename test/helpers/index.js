@@ -19,6 +19,7 @@ module.exports = {
   create,
   spawnServer,
   spawnClient,
+  spawnKeygen,
   keygen,
   addAuthorizedPeer,
   sleep,
@@ -35,7 +36,6 @@ function createTmpDir (t) {
 
 async function create (t) {
   const root = createTmpDir(t)
-
   const clientkey = path.join(root, 'peer-client')
   const serverkey = path.join(root, 'peer-server')
   const firewall = path.join(root, 'authorized_peers')
@@ -49,35 +49,52 @@ async function create (t) {
   return { root, clientkey, serverkey, firewall, swarm, clientKeyPair, serverKeyPair }
 }
 
+// + should require to pass the args array, and just automatically append --testnet
+
 async function spawnServer (t, { serverkey, firewall }) {
-  const server = spawn(BIN_SERVER, ['-f', serverkey, '--firewall', firewall, '--testnet'], { timeout: 10000 })
-  t.teardown(() => server.kill())
+  const sp = spawn(BIN_SERVER, ['-f', serverkey, '--firewall', firewall, '--testnet'], { timeout: 10000 })
+  t.teardown(() => sp.kill())
 
-  server.stdout.setEncoding('utf8')
-  server.stderr.setEncoding('utf8')
+  sp.stdout.setEncoding('utf8')
+  sp.stderr.setEncoding('utf8')
 
-  server.on('error', (error) => t.fail('server error: ' + error.message))
-  server.stderr.on('data', (data) => t.fail('server stderr: ' + data))
+  sp.on('error', (error) => t.fail('server error: ' + error.message))
+  sp.stderr.on('data', (data) => t.fail('server stderr: ' + data))
 
-  await waitForProcess(server)
-  await waitForServerReady(server)
+  await waitForProcess(sp)
+  await waitForServerReady(sp)
 
-  return server
+  return sp
 }
 
 async function spawnClient (t, serverPublicKey, { clientkey }) {
-  const client = spawn(BIN_CLIENT, [serverPublicKey, '-f', clientkey, '--testnet'], { timeout: 10000 })
-  t.teardown(() => client.kill())
+  const sp = spawn(BIN_CLIENT, [serverPublicKey, '-f', clientkey, '--testnet'], { timeout: 10000 })
+  t.teardown(() => sp.kill())
 
-  client.stdout.setEncoding('utf8')
-  client.stderr.setEncoding('utf8')
+  sp.stdout.setEncoding('utf8')
+  sp.stderr.setEncoding('utf8')
 
-  client.on('error', (error) => t.fail('client error: ' + error.message))
-  client.stderr.on('data', (data) => t.fail('client stderr: ' + data))
+  sp.on('error', (error) => t.fail('client error: ' + error.message))
+  sp.stderr.on('data', (data) => t.fail('client stderr: ' + data))
 
-  await waitForProcess(client)
+  await waitForProcess(sp)
 
-  return client
+  return sp
+}
+
+async function spawnKeygen (t, { keyfile }) {
+  const sp = spawn(BIN_KEYGEN, ['-f', keyfile], { timeout: 10000 })
+  t.teardown(() => sp.kill())
+
+  sp.stdout.setEncoding('utf8')
+  sp.stderr.setEncoding('utf8')
+
+  sp.on('error', (error) => t.fail('keygen error: ' + error.message))
+  sp.stderr.on('data', (data) => t.fail('keygen stderr: ' + data))
+
+  await waitForProcess(sp)
+
+  return sp
 }
 
 function keygen (keyfile) {

@@ -1,5 +1,21 @@
 const test = require('brittle')
-const { create, spawnServer, spawnClient } = require('./helpers/index.js')
+const path = require('path')
+const { create, spawnServer, spawnClient, spawnKeygen } = require('./helpers/index.js')
+
+test('basic keygen', async function (t) {
+  t.plan(3)
+
+  const { root } = await create(t)
+  const keyfile = path.join(root, 'peer-random')
+
+  const keygen = await spawnKeygen(t, { keyfile })
+  keygen.on('close', (code) => t.pass('keygen closed: ' + code))
+
+  keygen.stdout.on('data', (data) => {
+    if (data.indexOf('Generating key') > -1) t.pass('generating key')
+    if (data.indexOf('Your key has been saved') > -1) t.pass('key saved')
+  })
+})
 
 test('basic shell', async function (t) {
   t.plan(4)
@@ -27,6 +43,6 @@ test('basic shell', async function (t) {
     }
   })
 
-  client.stdin.write(Buffer.from('HYPERSHELL_TEST_ENV="1234"\necho "The number is: $HYPERSHELL_TEST_ENV"\n'))
+  client.stdin.write(Buffer.from(' HYPERSHELL_TEST_ENV="1234"\n echo "The number is: $HYPERSHELL_TEST_ENV"\n'))
   // client.stdin.end()
 })
