@@ -11,14 +11,17 @@ const Keychain = require('keypear')
 const BIN_KEYGEN = path.join(__dirname, '..', '..', 'bin/keygen.js')
 const BIN_SERVER = path.join(__dirname, '..', '..', 'bin/server.js')
 const BIN_CLIENT = path.join(__dirname, '..', '..', 'bin/client.js')
+const BIN_COPY = path.join(__dirname, '..', '..', 'bin/copy.js')
 
 module.exports = {
   BIN_KEYGEN,
   BIN_SERVER,
   BIN_CLIENT,
+  BIN_COPY,
   create,
   spawnServer,
   spawnClient,
+  spawnCopy,
   spawnKeygen,
   keygen,
   addAuthorizedPeer,
@@ -76,6 +79,21 @@ async function spawnClient (t, serverPublicKey, { clientkey }) {
 
   sp.on('error', (error) => t.fail('client error: ' + error.message))
   sp.stderr.on('data', (data) => t.fail('client stderr: ' + data))
+
+  await waitForProcess(sp)
+
+  return sp
+}
+
+async function spawnCopy (t, source, target, { clientkey }) {
+  const sp = spawn(BIN_COPY, [source, target, '-f', clientkey, '--testnet'], { timeout: 10000 })
+  t.teardown(() => sp.kill())
+
+  sp.stdout.setEncoding('utf8')
+  sp.stderr.setEncoding('utf8')
+
+  sp.on('error', (error) => t.fail('copy error: ' + error.message))
+  sp.stderr.on('data', (data) => t.fail('copy stderr: ' + data))
 
   await waitForProcess(sp)
 
