@@ -71,7 +71,7 @@ function onconnection (socket) {
   const node = this.dht
 
   socket.on('end', () => socket.end())
-  socket.on('close', () => console.log('Socket is closed:', socket.remotePublicKey.toString('hex')))
+  socket.on('close', () => console.log('Connection closed', socket.remotePublicKey.toString('hex')))
   socket.on('error', (error) => console.error(error.code, error))
 
   socket.setKeepAlive(5000)
