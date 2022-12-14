@@ -59,8 +59,6 @@ function errorAndExit (message) {
 }
 
 function parseRemotePath (str) {
-  // str has to start with @ or a public key
-
   const i = str.indexOf(':')
   if (i === -1) return [null, null]
 
