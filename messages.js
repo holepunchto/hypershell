@@ -4,20 +4,20 @@ const stringArray = c.array(c.string)
 
 const handshakeSpawn = {
   preencode (state, s) {
-    c.string.preencode(state, s.file || '')
+    c.string.preencode(state, s.command || '')
     stringArray.preencode(state, s.args || [])
     c.uint.preencode(state, s.width)
     c.uint.preencode(state, s.height)
   },
   encode (state, s) {
-    c.string.encode(state, s.file || '')
+    c.string.encode(state, s.command || '')
     stringArray.encode(state, s.args || [])
     c.uint.encode(state, s.width)
     c.uint.encode(state, s.height)
   },
   decode (state) {
     return {
-      file: c.string.decode(state),
+      command: c.string.decode(state),
       args: stringArray.decode(state),
       width: c.uint.decode(state),
       height: c.uint.decode(state)
