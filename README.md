@@ -55,7 +55,7 @@ If you wanted to, you can also create a server:
 hypershell-server
 ```
 
-`~/.hypershell/firewall` will be automatically created as an empty file.\
+`~/.hypershell/authorized_peers` will be automatically created as an empty file.\
 That means, all connections are denied by default.
 
 You can allow public keys in real-time by adding them to the firewall list.
