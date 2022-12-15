@@ -1,11 +1,23 @@
+#!/usr/bin/env node
+
 const fs = require('fs')
 const path = require('path')
 const readline = require('readline')
+const { Command } = require('commander')
 const Keychain = require('keypear')
 const DHT = require('@hyperswarm/dht')
 const { SHELLDIR } = require('../constants.js')
 
-module.exports = async function (options = {}) {
+const program = new Command()
+
+program
+  .description('Create keys of type ed25519 for use by hypercore-protocol.')
+  .option('-f <filename>', 'Filename of the seed key file.')
+  .option('-c <comment>', 'Provides a new comment.')
+  .action(cmd)
+  .parseAsync()
+
+async function cmd (options = {}) {
   console.log('Generating key.')
 
   let keyfile

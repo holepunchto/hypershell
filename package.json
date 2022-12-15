@@ -4,9 +4,10 @@
   "description": "CLI to create and connect to P2P E2E encrypted shells",
   "main": "index.js",
   "bin": {
-    "hypershell-server": "./bin-server.js",
-    "hypershell": "./bin-client.js",
-    "hypershell-keygen": "./bin-keygen.js"
+    "hypershell-server": "./bin/server.js",
+    "hypershell": "./bin/client.js",
+    "hypershell-copy": "./bin/copy.js",
+    "hypershell-keygen": "./bin/keygen.js"
   },
   "scripts": {
     "test": "standard && brittle test/*.js",
@@ -24,13 +25,16 @@
   "homepage": "https://github.com/holepunchto/hypershell",
   "dependencies": {
     "@hyperswarm/dht": "^6.3.0",
+    "@hyperswarm/secret-stream": "^6.1.0",
+    "@hyperswarm/testnet": "^3.1.0",
     "commander": "^9.4.1",
     "compact-encoding": "^2.11.0",
     "graceful-goodbye": "^1.1.0",
     "keypear": "^1.1.1",
-    "minimist": "^1.2.7",
     "protomux": "^3.4.0",
+    "pump": "^3.0.0",
     "read-file-live": "^1.0.1",
+    "tar-fs": "^2.1.1",
     "tt-native": "^1.0.2"
   },
   "devDependencies": {
