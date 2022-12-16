@@ -55,7 +55,7 @@ async function create (t) {
 // + should require to pass the args array, and just automatically append --testnet
 
 async function spawnKeygen (t, { keyfile }) {
-  const sp = spawn(BIN_KEYGEN, ['-f', keyfile], { timeout: 10000 })
+  const sp = spawn(process.execPath, [BIN_KEYGEN, '-f', keyfile], { timeout: 10000 })
   t.teardown(() => sp.kill())
 
   sp.stdout.setEncoding('utf8')
@@ -70,7 +70,7 @@ async function spawnKeygen (t, { keyfile }) {
 }
 
 async function spawnServer (t, { serverkey, firewall }) {
-  const sp = spawn(BIN_SERVER, ['-f', serverkey, '--firewall', firewall, '--testnet'], { timeout: 10000 })
+  const sp = spawn(process.execPath, [BIN_SERVER, '-f', serverkey, '--firewall', firewall, '--testnet'], { timeout: 10000 })
   t.teardown(() => sp.kill())
 
   sp.stdout.setEncoding('utf8')
@@ -86,7 +86,7 @@ async function spawnServer (t, { serverkey, firewall }) {
 }
 
 async function spawnClient (t, serverPublicKey, { clientkey }) {
-  const sp = spawn(BIN_CLIENT, [serverPublicKey, '-f', clientkey, '--testnet'], { timeout: 10000 })
+  const sp = spawn(process.execPath, [BIN_CLIENT, serverPublicKey, '-f', clientkey, '--testnet'], { timeout: 10000 })
   t.teardown(() => sp.kill())
 
   sp.stdout.setEncoding('utf8')
@@ -101,7 +101,7 @@ async function spawnClient (t, serverPublicKey, { clientkey }) {
 }
 
 async function spawnCopy (t, source, target, { clientkey }) {
-  const sp = spawn(BIN_COPY, [source, target, '-f', clientkey, '--testnet'], { timeout: 10000 })
+  const sp = spawn(process.execPath, [BIN_COPY, source, target, '-f', clientkey, '--testnet'], { timeout: 10000 })
   t.teardown(() => sp.kill())
 
   sp.stdout.setEncoding('utf8')

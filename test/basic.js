@@ -2,6 +2,7 @@ const test = require('brittle')
 const path = require('path')
 const fs = require('fs')
 const { create, spawnKeygen, spawnServer, spawnClient, spawnCopy } = require('./helpers/index.js')
+const { shellFile } = require('../lib/shell.js')
 
 test('keygen', async function (t) {
   t.plan(5)
@@ -40,7 +41,7 @@ test('shell', async function (t) {
   client.on('close', (code) => t.pass('client closed: ' + code))
 
   client.stdout.on('data', (data) => {
-    if (data.indexOf('The number is: 1234\r\n') > -1) {
+    if (data.indexOf('The number is: 1234') > -1) {
       t.pass('client stdout match')
 
       client.kill()
@@ -48,7 +49,11 @@ test('shell', async function (t) {
     }
   })
 
-  client.stdin.write(Buffer.from(' HYPERSHELL_TEST_ENV="1234"\n echo "The number is: $HYPERSHELL_TEST_ENV"\n'))
+  if (shellFile.indexOf('powershell.exe') > -1) {
+    client.stdin.write(Buffer.from(' $env:HYPERSHELL_TEST_ENV="1234"\r\n echo "The number is: $env:HYPERSHELL_TEST_ENV"\r\n'))
+  } else {
+    client.stdin.write(Buffer.from(' HYPERSHELL_TEST_ENV="1234"\n echo "The number is: $HYPERSHELL_TEST_ENV"\n'))
+  }
   // client.stdin.end()
 })
 
