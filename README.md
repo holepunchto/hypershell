@@ -74,12 +74,12 @@ Download a file from a remote server to your desktop:
 hypershell-copy @remote_peer:/root/database.json ~/Desktop/db-backup.json
 ```
 
-You can also use the public key of the server directly:
+Note: in the future, the `@` might be removed.
+
+You can also use the public key of the server directly (without `@`):
 ```bash
 hypershell-copy ~/Desktop/some-folder cdb7b7774c3d90547ce2038b51367dc4c96c42abf7c2e794bb5eb036ec7793cd:/root/backup-folder
 ```
-
-Note: in the future, the `@` might be removed.
 
 ## Local tunnel
 It creates a local server, and every connection is forwarded to the remote host.
