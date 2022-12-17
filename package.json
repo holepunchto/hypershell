@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/holepunchto/hypershell",
   "dependencies": {
-    "@hyperswarm/dht": "^6.3.0",
+    "@hyperswarm/dht": "^6.3.5",
     "@hyperswarm/secret-stream": "^6.1.0",
     "@hyperswarm/testnet": "^3.1.0",
     "commander": "^9.4.1",
