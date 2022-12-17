@@ -1,6 +1,6 @@
 # hypershell
 
-Peer-to-peer alternative to OpenSSH and SCP.
+Peer-to-peer shells, alternative to OpenSSH and SCP.
 
 ## Install
 ```

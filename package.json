@@ -1,7 +1,7 @@
 {
   "name": "hypershell",
   "version": "0.0.5",
-  "description": "Peer-to-peer alternative to OpenSSH and SCP",
+  "description": "Peer-to-peer shells, alternative to OpenSSH and SCP",
   "main": "index.js",
   "bin": {
     "hypershell-server": "./bin/server.js",
