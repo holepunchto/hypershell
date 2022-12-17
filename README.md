@@ -9,7 +9,7 @@ npm i -g hypershell
 
 ## Usage
 ```shell
-# Create keys of type ed25519 for use by hypercore-protocol:
+# Create keys for use by hypercore-protocol:
 hypershell-keygen [-f keyfile] [-c comment]
 
 # Create a P2P shell server:
