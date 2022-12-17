@@ -1,6 +1,6 @@
 # hypershell
 
-Peer-to-peer shells, alternative to OpenSSH and SCP.
+Spawn shells anywhere. Fully peer-to-peer, authenticated, and end to end encrypted.
 
 ## Install
 ```
