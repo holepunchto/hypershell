@@ -1,6 +1,6 @@
 # hypershell
 
-CLI to create and connect to P2P E2E encrypted shells.
+Peer-to-peer alternative to OpenSSH and SCP.
 
 ## Install
 ```
