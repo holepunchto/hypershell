@@ -25,6 +25,8 @@ hypershell [-L [address:]port:host:hostport] <server name or public key>
 hypershell-copy [-f keyfile] <[@host:]source> <[@host:]target>
 ```
 
+Use `--help` with any command for more information.
+
 ## Setup
 First, create a key with the default filename:
 ```bash
