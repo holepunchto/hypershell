@@ -79,7 +79,6 @@ function spawnServer (t, { serverkey, firewall }) {
 
   return sp
 }
-
 function spawnClient (t, serverPublicKey, { clientkey }) {
   const sp = spawn(process.execPath, [BIN_CLIENT, serverPublicKey, '-f', clientkey, '--testnet'], { timeout: 15000 })
   t.teardown(() => sp.kill())
@@ -165,13 +164,13 @@ function waitForServerReady (child) {
     }
 
     function ondata (data) {
-      const match1 = data.indexOf('To connect to this shell,') > -1
-      if (match1) step++
-
-      const match2 = data.indexOf('hypershell ') > -1
-      if (match2) step++
-
-      if (step === 2) {
+      if (step === 0) {
+        const match = data.startsWith('To connect to this shell,')
+        if (!match) reject(new Error('Server first stdout is wrong'))
+        step++
+      } else if (step === 1) {
+        const match = data.startsWith('hypershell ')
+        if (!match) reject(new Error('Server second stdout is wrong'))
         cleanup()
         resolve()
       }
