@@ -26,7 +26,7 @@
   "dependencies": {
     "@hyperswarm/dht": "^6.3.5",
     "@hyperswarm/secret-stream": "^6.1.0",
-    "@hyperswarm/testnet": "^3.1.0",
+    "@hyperswarm/testnet": "^3.1.1",
     "commander": "^9.4.1",
     "compact-encoding": "^2.11.0",
     "graceful-goodbye": "^1.1.0",
