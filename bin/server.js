@@ -40,7 +40,7 @@ async function cmd (options = {}) {
   const seed = Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
   const keyPair = DHT.keyPair(seed)
 
-  const node = new DHT({ bootstrap: options.testnet ? [{ host: '127.0.0.1', port: 40737 }] : undefined })
+  const node = new DHT({ bootstrap: options.testnet ? [{ host: '127.0.0.1', port: 40838 }] : undefined })
   goodbye(() => node.destroy(), 3)
 
   const server = node.createServer({ firewall: onFirewall })

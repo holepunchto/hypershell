@@ -121,11 +121,11 @@ function addAuthorizedPeer (firewall, keyfile) {
 }
 
 async function useTestnet (t) {
-  const swarm = await createTestnet(3, { host: '127.0.0.1', port: 40737 })
+  const swarm = await createTestnet(3, { host: '127.0.0.1', port: 40838 })
   t.teardown(() => swarm.destroy())
 
   const bootstrap = swarm.nodes[0].address()
-  if (bootstrap.port !== 40737) {
+  if (bootstrap.port !== 40838) {
     await swarm.destroy()
     throw new Error('Swarm failed to be created on specific port')
   }
