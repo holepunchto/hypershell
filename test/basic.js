@@ -1,7 +1,7 @@
 const test = require('brittle')
 const path = require('path')
 const fs = require('fs')
-const { create, spawnKeygen, spawnServer, spawnClient, spawnCopy } = require('./helpers/index.js')
+const { create, spawnKeygen, spawnServer, spawnClient, spawnCopy, waitForProcess, waitForServerReady } = require('./helpers/index.js')
 const { shellFile } = require('../lib/shell.js')
 
 test('keygen', async function (t) {
@@ -12,7 +12,7 @@ test('keygen', async function (t) {
 
   t.absent(fs.existsSync(keyfile))
 
-  const keygen = await spawnKeygen(t, { keyfile })
+  const keygen = spawnKeygen(t, { keyfile })
   keygen.on('close', (code) => t.pass('keygen closed: ' + code))
 
   keygen.stdout.on('data', (data) => {
@@ -21,6 +21,8 @@ test('keygen', async function (t) {
   })
 
   keygen.on('close', () => t.ok(fs.existsSync(keyfile)))
+
+  await waitForProcess(keygen)
 })
 
 test('shell', async function (t) {
@@ -28,7 +30,7 @@ test('shell', async function (t) {
 
   const { clientkey, serverkey, firewall, serverKeyPair } = await create(t)
 
-  const server = await spawnServer(t, { serverkey, firewall })
+  const server = spawnServer(t, { serverkey, firewall })
   server.once('close', (code) => t.pass('server closed: ' + code))
 
   server.stdout.on('data', (data) => {
@@ -37,7 +39,9 @@ test('shell', async function (t) {
     }
   })
 
-  const client = await spawnClient(t, serverKeyPair.publicKey.toString('hex'), { clientkey })
+  await waitForServerReady(server)
+
+  const client = spawnClient(t, serverKeyPair.publicKey.toString('hex'), { clientkey })
   client.on('close', (code) => t.pass('client closed: ' + code))
 
   client.stdout.on('data', (data) => {
@@ -48,6 +52,8 @@ test('shell', async function (t) {
       client.once('close', () => server.kill())
     }
   })
+
+  await waitForProcess(client)
 
   if (shellFile.indexOf('powershell.exe') > -1) {
     client.stdin.write(Buffer.from(' $env:HYPERSHELL_TEST_ENV="1234"\r\n echo "The number is: $env:HYPERSHELL_TEST_ENV"\r\n'))
@@ -68,12 +74,13 @@ test('copy - upload (absolute path)', async function (t) {
   fs.writeFileSync(src, 'hello', { flag: 'wx' })
   t.absent(fs.existsSync(dst))
 
-  const server = await spawnServer(t, { serverkey, firewall })
+  const server = spawnServer(t, { serverkey, firewall })
   server.once('close', (code) => t.pass('server closed: ' + code))
+  await waitForServerReady(server)
 
   const pk = serverKeyPair.publicKey.toString('hex')
 
-  const upload = await spawnCopy(t, src, pk + ':' + dst, { clientkey })
+  const upload = spawnCopy(t, src, pk + ':' + dst, { clientkey })
   upload.on('close', (code) => t.pass('upload closed: ' + code))
 
   upload.on('close', () => {
@@ -82,6 +89,8 @@ test('copy - upload (absolute path)', async function (t) {
 
     server.kill()
   })
+
+  await waitForProcess(upload)
 })
 
 test('copy - download (absolute path)', async function (t) {
@@ -95,12 +104,13 @@ test('copy - download (absolute path)', async function (t) {
   fs.writeFileSync(src, 'hello', { flag: 'wx' })
   t.absent(fs.existsSync(dst))
 
-  const server = await spawnServer(t, { serverkey, firewall })
+  const server = spawnServer(t, { serverkey, firewall })
   server.once('close', (code) => t.pass('server closed: ' + code))
+  await waitForServerReady(server)
 
   const pk = serverKeyPair.publicKey.toString('hex')
 
-  const download = await spawnCopy(t, pk + ':' + src, dst, { clientkey })
+  const download = spawnCopy(t, pk + ':' + src, dst, { clientkey })
   download.on('close', (code) => t.pass('download closed: ' + code))
 
   download.on('close', () => {
@@ -109,4 +119,6 @@ test('copy - download (absolute path)', async function (t) {
 
     server.kill()
   })
+
+  await waitForProcess(download)
 })

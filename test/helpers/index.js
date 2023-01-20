@@ -54,7 +54,7 @@ async function create (t) {
 
 // + should require to pass the args array, and just automatically append --testnet
 
-async function spawnKeygen (t, { keyfile }) {
+function spawnKeygen (t, { keyfile }) {
   const sp = spawn(process.execPath, [BIN_KEYGEN, '-f', keyfile], { timeout: 10000 })
   t.teardown(() => sp.kill())
 
@@ -64,12 +64,10 @@ async function spawnKeygen (t, { keyfile }) {
   sp.on('error', (error) => t.fail('keygen error: ' + error.message))
   sp.stderr.on('data', (data) => t.fail('keygen stderr: ' + data))
 
-  await waitForProcess(sp)
-
   return sp
 }
 
-async function spawnServer (t, { serverkey, firewall }) {
+function spawnServer (t, { serverkey, firewall }) {
   const sp = spawn(process.execPath, [BIN_SERVER, '-f', serverkey, '--firewall', firewall, '--testnet'], { timeout: 10000 })
   t.teardown(() => sp.kill())
 
@@ -79,13 +77,10 @@ async function spawnServer (t, { serverkey, firewall }) {
   sp.on('error', (error) => t.fail('server error: ' + error.message))
   sp.stderr.on('data', (data) => t.fail('server stderr: ' + data))
 
-  await waitForProcess(sp)
-  await waitForServerReady(sp)
-
   return sp
 }
 
-async function spawnClient (t, serverPublicKey, { clientkey }) {
+function spawnClient (t, serverPublicKey, { clientkey }) {
   const sp = spawn(process.execPath, [BIN_CLIENT, serverPublicKey, '-f', clientkey, '--testnet'], { timeout: 10000 })
   t.teardown(() => sp.kill())
 
@@ -95,12 +90,10 @@ async function spawnClient (t, serverPublicKey, { clientkey }) {
   sp.on('error', (error) => t.fail('client error: ' + error.message))
   sp.stderr.on('data', (data) => t.fail('client stderr: ' + data))
 
-  await waitForProcess(sp)
-
   return sp
 }
 
-async function spawnCopy (t, source, target, { clientkey }) {
+function spawnCopy (t, source, target, { clientkey }) {
   const sp = spawn(process.execPath, [BIN_COPY, source, target, '-f', clientkey, '--testnet'], { timeout: 10000 })
   t.teardown(() => sp.kill())
 
@@ -109,8 +102,6 @@ async function spawnCopy (t, source, target, { clientkey }) {
 
   sp.on('error', (error) => t.fail('copy error: ' + error.message))
   sp.stderr.on('data', (data) => t.fail('copy stderr: ' + data))
-
-  await waitForProcess(sp)
 
   return sp
 }
@@ -130,11 +121,11 @@ function addAuthorizedPeer (firewall, keyfile) {
 }
 
 async function useTestnet (t) {
-  const swarm = await createTestnet(3, { host: '127.0.0.1', port: 49737 })
+  const swarm = await createTestnet(3, { host: '127.0.0.1', port: 40838 })
   t.teardown(() => swarm.destroy())
 
   const bootstrap = swarm.nodes[0].address()
-  if (bootstrap.port !== 49737) {
+  if (bootstrap.port !== 40838) {
     await swarm.destroy()
     throw new Error('Swarm failed to be created on specific port')
   }
@@ -164,11 +155,13 @@ function waitForServerReady (child) {
     let step = 0
 
     child.stdout.on('data', ondata)
-    child.stderr.on('data', onerror)
+    child.stderr.on('data', onstderror)
+    child.on('error', onerror)
 
     function cleanup () {
       child.stdout.removeListener('data', ondata)
-      child.stderr.removeListener('data', onerror)
+      child.stderr.removeListener('data', onstderror)
+      child.removeListener('error', onerror)
     }
 
     function ondata (data) {
@@ -184,9 +177,14 @@ function waitForServerReady (child) {
       }
     }
 
-    function onerror (data) {
+    function onstderror (data) {
       cleanup()
       reject(new Error(data))
+    }
+
+    function onerror (err) {
+      cleanup()
+      reject(err)
     }
   })
 }
