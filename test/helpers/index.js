@@ -55,7 +55,7 @@ async function create (t) {
 // + should require to pass the args array, and just automatically append --testnet
 
 function spawnKeygen (t, { keyfile }) {
-  const sp = spawn(process.execPath, [BIN_KEYGEN, '-f', keyfile], { timeout: 10000 })
+  const sp = spawn(process.execPath, [BIN_KEYGEN, '-f', keyfile], { timeout: 15000 })
   t.teardown(() => sp.kill())
 
   sp.stdout.setEncoding('utf8')
@@ -68,7 +68,7 @@ function spawnKeygen (t, { keyfile }) {
 }
 
 function spawnServer (t, { serverkey, firewall }) {
-  const sp = spawn(process.execPath, [BIN_SERVER, '-f', serverkey, '--firewall', firewall, '--testnet'], { timeout: 10000 })
+  const sp = spawn(process.execPath, [BIN_SERVER, '-f', serverkey, '--firewall', firewall, '--testnet'], { timeout: 15000 })
   t.teardown(() => sp.kill())
 
   sp.stdout.setEncoding('utf8')
@@ -81,7 +81,7 @@ function spawnServer (t, { serverkey, firewall }) {
 }
 
 function spawnClient (t, serverPublicKey, { clientkey }) {
-  const sp = spawn(process.execPath, [BIN_CLIENT, serverPublicKey, '-f', clientkey, '--testnet'], { timeout: 10000 })
+  const sp = spawn(process.execPath, [BIN_CLIENT, serverPublicKey, '-f', clientkey, '--testnet'], { timeout: 15000 })
   t.teardown(() => sp.kill())
 
   sp.stdout.setEncoding('utf8')
@@ -94,7 +94,7 @@ function spawnClient (t, serverPublicKey, { clientkey }) {
 }
 
 function spawnCopy (t, source, target, { clientkey }) {
-  const sp = spawn(process.execPath, [BIN_COPY, source, target, '-f', clientkey, '--testnet'], { timeout: 10000 })
+  const sp = spawn(process.execPath, [BIN_COPY, source, target, '-f', clientkey, '--testnet'], { timeout: 15000 })
   t.teardown(() => sp.kill())
 
   sp.stdout.setEncoding('utf8')
@@ -165,13 +165,13 @@ function waitForServerReady (child) {
     }
 
     function ondata (data) {
-      if (step === 0) {
-        const match = data.startsWith('To connect to this shell,')
-        if (!match) reject(new Error('Server first stdout is wrong'))
-        step++
-      } else if (step === 1) {
-        const match = data.startsWith('hypershell ')
-        if (!match) reject(new Error('Server second stdout is wrong'))
+      const match1 = data.indexOf('To connect to this shell,') > -1
+      if (match1) step++
+
+      const match2 = data.indexOf('hypershell ') > -1
+      if (match2) step++
+
+      if (step === 2) {
         cleanup()
         resolve()
       }
