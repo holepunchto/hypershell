@@ -79,6 +79,7 @@ function spawnServer (t, { serverkey, firewall }) {
 
   return sp
 }
+
 function spawnClient (t, serverPublicKey, { clientkey }) {
   const sp = spawn(process.execPath, [BIN_CLIENT, serverPublicKey, '-f', clientkey, '--testnet'], { timeout: 15000 })
   t.teardown(() => sp.kill())
