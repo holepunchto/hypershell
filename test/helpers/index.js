@@ -164,13 +164,13 @@ function waitForServerReady (child) {
     }
 
     function ondata (data) {
-      if (step === 0) {
-        const match = data.startsWith('To connect to this shell,')
-        if (!match) reject(new Error('Server first stdout is wrong'))
-        step++
-      } else if (step === 1) {
-        const match = data.startsWith('hypershell ')
-        if (!match) reject(new Error('Server second stdout is wrong'))
+      const match1 = data.indexOf('To connect to this shell,') > -1
+      if (match1) step++
+
+      const match2 = data.indexOf('hypershell ') > -1
+      if (match2) step++
+
+      if (step === 2) {
         cleanup()
         resolve()
       }
