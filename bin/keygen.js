@@ -8,6 +8,13 @@ const Keychain = require('keypear')
 const DHT = require('@hyperswarm/dht')
 const { SHELLDIR } = require('../constants.js')
 
+const isModule = require.main !== module
+
+if (isModule) {
+  module.exports = cmd
+  return
+}
+
 const program = new Command()
 
 program
@@ -36,6 +43,11 @@ async function cmd (options = {}) {
   const comment = options.c ? (' # ' + options.c) : ''
 
   if (fs.existsSync(keyfile)) {
+    if (isModule) {
+      console.log()
+      return
+    }
+
     errorAndExit(keyfile + ' already exists.') // Overwrite (y/n)?
   }
 
@@ -46,6 +58,8 @@ async function cmd (options = {}) {
   console.log('Your key has been saved in', keyfile)
   console.log('The public key is:')
   console.log(DHT.keyPair(seed).publicKey.toString('hex'))
+
+  if (isModule) console.log()
 }
 
 function question (query = '') {

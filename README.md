@@ -9,16 +9,16 @@ npm i -g hypershell
 
 ## Usage
 ```shell
-# Create keys for use by hypercore-protocol:
+# Create keys
 hypershell-keygen [-f keyfile] [-c comment]
 
-# Create a P2P shell server:
+# Create a P2P shell server
 hypershell-server [-f keyfile] [--firewall filename]
 
-# Connect to a P2P shell:
+# Connect to a P2P shell
 hypershell [-f keyfile] <server name or public key>
 
-# Local tunnel that forwards to remote host:
+# Local tunnel that forwards to remote host
 hypershell [-L [address:]port:host:hostport] <server name or public key>
 
 # Copy files (download and upload)
@@ -27,26 +27,21 @@ hypershell-copy [-f keyfile] <[@host:]source> <[@host:]target>
 
 Use `--help` with any command for more information.
 
-## Setup
-First, create a key with the default filename:
-```bash
-hypershell-keygen
-```
+## First steps
+Keys are automatically created with a default filename on first run.
 
-#### Client
-Now you can connect to servers (they have to allow your public key):
+Just connect to servers (they have to allow your public key):
 ```bash
 hypershell <server name or public key>
 ```
 
-#### Server
-If you wanted to, you can also create a server:
+You could also create a server:
 ```bash
 hypershell-server
 ```
 
-`~/.hypershell/authorized_peers` will be automatically created as an empty file.\
-That means, all connections are denied by default.
+`~/.hypershell/authorized_peers` will be created as an empty file.\
+Meaning all connections are denied by default.
 
 You can allow public keys in real-time by adding them to the firewall list.
 
@@ -59,7 +54,7 @@ Add named peers to the file like for example:
 home cdb7b7774c3d90547ce2038b51367dc4c96c42abf7c2e794bb5eb036ec7793cd 
 ```
 
-Now just `hypershell home` and no more always writing the entire public key.
+Now just `hypershell home` (it saves you writing the entire public key).
 
 ## hypershell-copy
 Similar to `scp`. It works with files, and with folders recursively.
