@@ -40,7 +40,7 @@ You could also create a server:
 hypershell-server
 ```
 
-`~/.hypershell/authorized_peers` file will be empty, denying all connections by default.
+`~/.hypershell/authorized_peers` file will be empty, denying all connections by default.\
 Public keys can be added to the list to allow them in real-time.
 
 ## Known peers
