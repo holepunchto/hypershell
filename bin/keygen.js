@@ -12,17 +12,16 @@ const isModule = require.main !== module
 
 if (isModule) {
   module.exports = cmd
-  return
+} else {
+  const program = new Command()
+
+  program
+    .description('Create keys of type ed25519 for use by hypercore-protocol.')
+    .option('-f <filename>', 'Filename of the seed key file.')
+    .option('-c <comment>', 'Provides a new comment.')
+    .action(cmd)
+    .parseAsync()
 }
-
-const program = new Command()
-
-program
-  .description('Create keys of type ed25519 for use by hypercore-protocol.')
-  .option('-f <filename>', 'Filename of the seed key file.')
-  .option('-c <comment>', 'Provides a new comment.')
-  .action(cmd)
-  .parseAsync()
 
 async function cmd (options = {}) {
   console.log('Generating key.')
