@@ -13,6 +13,7 @@ const { ShellServer } = require('../lib/shell.js')
 const { UploadServer } = require('../lib/upload.js')
 const { DownloadServer } = require('../lib/download.js')
 const { LocalTunnelServer } = require('../lib/local-tunnel.js')
+const configs = require('tiny-configs')
 
 const program = new Command()
 
@@ -117,15 +118,8 @@ function readAuthorizedPeers (filename) {
   }
 
   try {
-    const list = typeof filename === 'string' ? fs.readFileSync(filename, 'utf8') : (filename || '').toString()
-    return list
-      .split('\n')
-      .map(line => {
-        line = line.replace(/\s+/g, ' ').trim()
-        line = line.replace(/#.*$/, '').trim()
-        return line
-      })
-      .filter(m => m)
+    const list = typeof filename === 'string' ? fs.readFileSync(filename, 'utf8') : filename
+    return configs.parse(list)
       .map(v => Buffer.from(v, 'hex'))
   } catch (error) {
     if (error.code === 'ENOENT') return []
