@@ -30,6 +30,11 @@ Use `--help` with any command for more information.
 ## First steps
 Keys are automatically created with a default filename on first run.
 
+Otherwise, you can first do:
+```bash
+hypershell-keygen
+```
+
 Just connect to servers (they have to allow your public key):
 ```bash
 hypershell <server name or public key>
