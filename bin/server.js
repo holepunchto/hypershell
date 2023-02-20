@@ -14,6 +14,7 @@ const { UploadServer } = require('../lib/upload.js')
 const { DownloadServer } = require('../lib/download.js')
 const { LocalTunnelServer } = require('../lib/local-tunnel.js')
 const configs = require('tiny-configs')
+const keygen = require('./keygen.js')
 
 const program = new Command()
 
@@ -30,7 +31,9 @@ async function cmd (options = {}) {
   const keyfile = path.resolve(options.f)
   const firewall = path.resolve(options.firewall)
 
-  if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
+  if (!fs.existsSync(keyfile)) {
+    await keygen({ f: keyfile })
+  }
 
   let allowed = readAuthorizedPeers(firewall)
   const unwatchFirewall = readFile(firewall, function (buf) {
@@ -125,9 +128,4 @@ function readAuthorizedPeers (filename) {
     if (error.code === 'ENOENT') return []
     throw error
   }
-}
-
-function errorAndExit (message) {
-  console.error('Error:', message)
-  process.exit(1)
 }

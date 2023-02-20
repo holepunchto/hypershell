@@ -8,6 +8,7 @@ const { SHELLDIR } = require('../constants.js')
 const { ClientSocket } = require('../lib/client-socket.js')
 const { ShellClient } = require('../lib/shell.js')
 const { LocalTunnelClient } = require('../lib/local-tunnel.js')
+const keygen = require('./keygen.js')
 
 const program = new Command()
 
@@ -26,7 +27,9 @@ program
 async function cmd (serverPublicKey, options = {}) {
   const keyfile = path.resolve(options.f)
 
-  if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
+  if (!fs.existsSync(keyfile)) {
+    await keygen({ f: keyfile })
+  }
 
   const { node, socket } = ClientSocket({ keyfile, serverPublicKey, testnet: options.testnet })
   const mux = new Protomux(socket)

@@ -8,14 +8,20 @@ const Keychain = require('keypear')
 const DHT = require('@hyperswarm/dht')
 const { SHELLDIR } = require('../constants.js')
 
-const program = new Command()
+const isModule = require.main !== module
 
-program
-  .description('Create keys of type ed25519 for use by hypercore-protocol.')
-  .option('-f <filename>', 'Filename of the seed key file.')
-  .option('-c <comment>', 'Provides a new comment.')
-  .action(cmd)
-  .parseAsync()
+if (isModule) {
+  module.exports = cmd
+} else {
+  const program = new Command()
+
+  program
+    .description('Create keys of type ed25519 for use by hypercore-protocol.')
+    .option('-f <filename>', 'Filename of the seed key file.')
+    .option('-c <comment>', 'Provides a new comment.')
+    .action(cmd)
+    .parseAsync()
+}
 
 async function cmd (options = {}) {
   console.log('Generating key.')
@@ -36,6 +42,11 @@ async function cmd (options = {}) {
   const comment = options.c ? (' # ' + options.c) : ''
 
   if (fs.existsSync(keyfile)) {
+    if (isModule) {
+      console.log()
+      return
+    }
+
     errorAndExit(keyfile + ' already exists.') // Overwrite (y/n)?
   }
 
@@ -46,6 +57,8 @@ async function cmd (options = {}) {
   console.log('Your key has been saved in', keyfile)
   console.log('The public key is:')
   console.log(DHT.keyPair(seed).publicKey.toString('hex'))
+
+  if (isModule) console.log()
 }
 
 function question (query = '') {

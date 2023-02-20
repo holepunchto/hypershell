@@ -8,6 +8,7 @@ const { SHELLDIR } = require('../constants.js')
 const { ClientSocket } = require('../lib/client-socket.js')
 const { UploadClient } = require('../lib/upload.js')
 const { DownloadClient } = require('../lib/download.js')
+const keygen = require('./keygen.js')
 
 const publicKeyExpr = /^([a-fA-F0-9]{64}|[ybndrfg8ejkmcpqxot1uwisza345h769]{52}):/i
 
@@ -29,7 +30,9 @@ async function cmd (sourcePath, targetPath, options = {}) {
 
   const keyfile = path.resolve(options.f)
 
-  if (!fs.existsSync(keyfile)) errorAndExit(keyfile + ' not exists.')
+  if (!fs.existsSync(keyfile)) {
+    await keygen({ f: keyfile })
+  }
 
   if (sourcePath[0] === '@' || publicKeyExpr.test(sourcePath)) {
     [serverPublicKey, sourcePath] = parseRemotePath(sourcePath)
