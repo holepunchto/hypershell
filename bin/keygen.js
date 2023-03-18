@@ -5,7 +5,7 @@ const path = require('path')
 const readline = require('readline')
 const { Command } = require('commander')
 const Keychain = require('keypear')
-const DHT = require('@hyperswarm/dht')
+const DHT = require('hyperdht')
 const { SHELLDIR } = require('../constants.js')
 
 const isModule = require.main !== module

@@ -3,7 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 const { Command } = require('commander')
-const DHT = require('@hyperswarm/dht')
+const DHT = require('hyperdht')
 const goodbye = require('graceful-goodbye')
 const Protomux = require('protomux')
 const readFile = require('read-file-live')
