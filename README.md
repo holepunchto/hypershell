@@ -25,7 +25,7 @@ hypershell [-L [address:]port:host:hostport] <server name or public key>
 hypershell-copy [-f keyfile] <[@host:]source> <[@host:]target>
 ```
 
-Use `--help` with any command for more information.
+Use `--help` with any command for more information, for example `hypershell-server --help`.
 
 ## First steps
 Keys are automatically created with a default filename on first run.
@@ -91,6 +91,11 @@ hypershell remote_peer -L 127.0.0.1:2020:127.0.0.1:3000
 ```
 
 Instead of `remote_peer` you can use the server public key as well.
+
+You can also pass several `-L` to run multiple local servers that remote forwards:
+```bash
+hypershell remote_peer -L 2020:127.0.0.1:3000 -L 2021:127.0.0.1:3000 -L 2022:127.0.0.1:3000
+```
 
 ## Multiple keys
 To have multiple servers, you need multiple keys.
