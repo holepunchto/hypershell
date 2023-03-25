@@ -83,6 +83,8 @@ hypershell-copy ~/Desktop/some-folder cdb7b7774c3d90547ce2038b51367dc4c96c42abf7
 
 ## Tunnel proxy
 
+#### Client
+
 It creates a local server, and every connection is forwarded to the remote host.
 
 In this example, creates a local tunnel at `127.0.0.1:2020` (where you can connect to),\
