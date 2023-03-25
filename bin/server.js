@@ -31,7 +31,7 @@ program
 async function cmd (options = {}) {
   const keyfile = path.resolve(options.f)
   const firewall = path.resolve(options.firewall)
-  const protocols = options.protocol || ['shell', 'upload', 'download', 'tunnel-local']
+  const protocols = options.protocol || ['shell', 'upload', 'download', 'tunnel']
 
   if (!fs.existsSync(keyfile)) {
     await keygen({ f: keyfile })
@@ -114,7 +114,7 @@ function onconnection ({ protocols }, socket) {
     })
   }
 
-  if (protocols.includes('tunnel-local')) {
+  if (protocols.includes('tunnel')) {
     mux.pair({ protocol: 'hypershell-tunnel-local' }, function () {
       const tunnel = new LocalTunnelServer({ node, socket, mux })
       if (!tunnel.channel) return

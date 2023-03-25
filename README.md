@@ -18,7 +18,7 @@ hypershell-server [-f keyfile] [--firewall filename]
 # Connect to a P2P shell
 hypershell [-f keyfile] <server name or public key>
 
-# Local tunnel that forwards to remote host
+# Tunnel proxy that forwards to remote host
 hypershell [-L [address:]port:host:hostport] <server name or public key>
 
 # Copy files (download and upload)
@@ -81,7 +81,7 @@ You can also use the public key of the server directly (without `@`):
 hypershell-copy ~/Desktop/some-folder cdb7b7774c3d90547ce2038b51367dc4c96c42abf7c2e794bb5eb036ec7793cd:/root/backup-folder
 ```
 
-## Local tunnel
+## Tunnel proxy
 It creates a local server, and every connection is forwarded to the remote host.
 
 In this example, creates a local tunnel at `127.0.0.1:2020` (where you can connect to),\
@@ -113,7 +113,7 @@ This is the list of server protocols:
 - `shell`
 - `upload`
 - `download`
-- `tunnel-local`
+- `tunnel`
 
 By default, all of them are enabled when running a server.
 
@@ -123,10 +123,10 @@ For example, you could limit it to shell only:\
 Or only allow file upload and/or download:\
 `hypershell-server --protocol upload --protocol download`
 
-Only local tunnel:\
-`hypershell-server --protocol tunnel-local`
+Restrict to tunnel only:\
+`hypershell-server --protocol tunnel`
 
-For example, if you only allow `tunnel-local`, then any attempt from clients to `shell` into the server will auto disconnect them.
+For example, if you only allow `tunnel`, then any attempt from clients to `shell` into the server will auto disconnect them.
 
 ## License
 MIT
