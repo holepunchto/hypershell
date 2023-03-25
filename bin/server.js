@@ -23,6 +23,7 @@ program
   .option('-f <filename>', 'Filename of the server seed key.', path.join(SHELLDIR, 'peer'))
   // .option('--key <hex or z32>', 'Inline key for the server.')
   .option('--firewall <filename>', 'List of allowed public keys.', path.join(SHELLDIR, 'authorized_peers'))
+  .option('--protocol <name...>', 'List of allowed protocols.')
   .option('--testnet', 'Use a local testnet.', false)
   .action(cmd)
   .parseAsync()
@@ -30,6 +31,7 @@ program
 async function cmd (options = {}) {
   const keyfile = path.resolve(options.f)
   const firewall = path.resolve(options.firewall)
+  const protocols = options.protocol || ['shell', 'upload', 'download', 'tunnel']
 
   if (!fs.existsSync(keyfile)) {
     await keygen({ f: keyfile })
@@ -50,7 +52,7 @@ async function cmd (options = {}) {
   const server = node.createServer({ firewall: onFirewall })
   goodbye(() => server.close(), 2)
 
-  server.on('connection', onconnection)
+  server.on('connection', onconnection.bind(server, { protocols }))
 
   await server.listen(keyPair)
 
@@ -71,7 +73,7 @@ async function cmd (options = {}) {
   }
 }
 
-function onconnection (socket) {
+function onconnection ({ protocols }, socket) {
   const node = this.dht
 
   socket.on('end', () => socket.end())
@@ -88,29 +90,37 @@ function onconnection (socket) {
 
   const mux = new Protomux(socket)
 
-  mux.pair({ protocol: 'hypershell' }, function () {
-    const shell = new ShellServer({ node, socket, mux })
-    if (!shell.channel) return
-    shell.open()
-  })
+  if (protocols.includes('shell')) {
+    mux.pair({ protocol: 'hypershell' }, function () {
+      const shell = new ShellServer({ node, socket, mux })
+      if (!shell.channel) return
+      shell.open()
+    })
+  }
 
-  mux.pair({ protocol: 'hypershell-upload' }, function () {
-    const upload = new UploadServer({ node, socket, mux })
-    if (!upload.channel) return
-    upload.open()
-  })
+  if (protocols.includes('upload')) {
+    mux.pair({ protocol: 'hypershell-upload' }, function () {
+      const upload = new UploadServer({ node, socket, mux })
+      if (!upload.channel) return
+      upload.open()
+    })
+  }
 
-  mux.pair({ protocol: 'hypershell-download' }, function () {
-    const download = new DownloadServer({ node, socket, mux })
-    if (!download.channel) return
-    download.open()
-  })
+  if (protocols.includes('download')) {
+    mux.pair({ protocol: 'hypershell-download' }, function () {
+      const download = new DownloadServer({ node, socket, mux })
+      if (!download.channel) return
+      download.open()
+    })
+  }
 
-  mux.pair({ protocol: 'hypershell-tunnel-local' }, function () {
-    const tunnel = new LocalTunnelServer({ node, socket, mux })
-    if (!tunnel.channel) return
-    tunnel.open()
-  })
+  if (protocols.includes('tunnel')) {
+    mux.pair({ protocol: 'hypershell-tunnel-local' }, function () {
+      const tunnel = new LocalTunnelServer({ node, socket, mux })
+      if (!tunnel.channel) return
+      tunnel.open()
+    })
+  }
 }
 
 function readAuthorizedPeers (filename) {
