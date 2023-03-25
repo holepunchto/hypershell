@@ -119,7 +119,7 @@ Or if you want to allow multiple hosts, port range, etc:
 hypershell-server --protocol tunnel  --tunnel-host 127.0.0.1 --tunnel-host 192.168.0.25 --tunnel-port 1080 --tunnel-port 3000 --tunnel-port 4100-4200
 ```
 
-Clients trying to connect to your server using different hosts/ports they will be automatically disconnected.
+Clients trying to use any different hosts/ports are automatically disconnected.
 
 ## Multiple keys
 To have multiple servers, you need multiple keys.
