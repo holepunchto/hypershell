@@ -107,5 +107,26 @@ hypershell-server -f ~/.hypershell/my-server --firewall ~/.hypershell/my-server-
 
 The client also accepts `-f` in case you need it.
 
+## Disable server protocols
+
+This is the list of server protocols:
+- `shell`
+- `upload`
+- `download`
+- `tunnel-local`
+
+By default, all of them are enabled when running a server.
+
+For example, you could limit it to shell only:
+`hypershell-server --protocol shell`
+
+Or only allow file upload and/or download:
+`hypershell-server --protocol upload --protocol download`
+
+Only local tunnel:
+`hypershell-server --protocol tunnel-local`
+
+For example, if you only allow `tunnel-local`, then any attempt from clients to `shell` into the server will auto disconnect them.
+
 ## License
 MIT
