@@ -13,7 +13,7 @@ npm i -g hypershell
 hypershell-keygen [-f keyfile] [-c comment]
 
 # Create a P2P shell server
-hypershell-server [-f keyfile] [--firewall filename]
+hypershell-server [-f keyfile] [--firewall filename] [--protocol name]
 
 # Connect to a P2P shell
 hypershell [-f keyfile] <server name or public key>
@@ -136,7 +136,7 @@ hypershell-server -f ~/.hypershell/my-server --firewall ~/.hypershell/my-server-
 
 The client also accepts `-f` in case you need it.
 
-## Disable server protocols
+## Restrict server protocols
 
 This is the list of server protocols:
 - `shell`
