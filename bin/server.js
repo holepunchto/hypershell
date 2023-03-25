@@ -16,6 +16,8 @@ const { LocalTunnelServer } = require('../lib/local-tunnel.js')
 const configs = require('tiny-configs')
 const keygen = require('./keygen.js')
 
+const PROTOCOLS = ['shell', 'upload', 'download', 'tunnel']
+
 const program = new Command()
 
 program
@@ -31,7 +33,7 @@ program
 async function cmd (options = {}) {
   const keyfile = path.resolve(options.f)
   const firewall = path.resolve(options.firewall)
-  const protocols = options.protocol || ['shell', 'upload', 'download', 'tunnel']
+  const protocols = options.protocol || PROTOCOLS
 
   if (!fs.existsSync(keyfile)) {
     await keygen({ f: keyfile })
@@ -56,9 +58,15 @@ async function cmd (options = {}) {
 
   await server.listen(keyPair)
 
-  console.log('To connect to this shell, on another computer run:')
-  console.log('hypershell ' + keyPair.publicKey.toString('hex'))
-  console.log()
+  if (protocols === PROTOCOLS) {
+    console.log('To connect to this shell, on another computer run:')
+    console.log('hypershell ' + keyPair.publicKey.toString('hex'))
+    console.log()
+  } else {
+    console.log('Running server with restricted protocols')
+    console.log('Server key: ' + keyPair.publicKey.toString('hex'))
+    console.log()
+  }
 
   function onFirewall (remotePublicKey, remoteHandshakePayload) {
     for (const publicKey of allowed) {
