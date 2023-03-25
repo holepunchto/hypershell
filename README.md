@@ -117,13 +117,13 @@ This is the list of server protocols:
 
 By default, all of them are enabled when running a server.
 
-For example, you could limit it to shell only:
+For example, you could limit it to shell only:\
 `hypershell-server --protocol shell`
 
-Or only allow file upload and/or download:
+Or only allow file upload and/or download:\
 `hypershell-server --protocol upload --protocol download`
 
-Only local tunnel:
+Only local tunnel:\
 `hypershell-server --protocol tunnel-local`
 
 For example, if you only allow `tunnel-local`, then any attempt from clients to `shell` into the server will auto disconnect them.
