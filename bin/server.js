@@ -26,6 +26,8 @@ program
   // .option('--key <hex or z32>', 'Inline key for the server.')
   .option('--firewall <filename>', 'List of allowed public keys.', path.join(SHELLDIR, 'authorized_peers'))
   .option('--protocol <name...>', 'List of allowed protocols.')
+  .option('--tunnel-host <address...>', 'Restrict tunneling to a limited set of hosts.')
+  .option('--tunnel-port <port...>', 'Restrict tunneling to a limited set of ports.')
   .option('--testnet', 'Use a local testnet.', false)
   .action(cmd)
   .parseAsync()
@@ -54,7 +56,7 @@ async function cmd (options = {}) {
   const server = node.createServer({ firewall: onFirewall })
   goodbye(() => server.close(), 2)
 
-  server.on('connection', onconnection.bind(server, { protocols }))
+  server.on('connection', onconnection.bind(server, { protocols, options }))
 
   await server.listen(keyPair)
 
@@ -81,7 +83,7 @@ async function cmd (options = {}) {
   }
 }
 
-function onconnection ({ protocols }, socket) {
+function onconnection ({ protocols, options }, socket) {
   const node = this.dht
 
   socket.on('end', () => socket.end())
@@ -124,7 +126,7 @@ function onconnection ({ protocols }, socket) {
 
   if (protocols.includes('tunnel')) {
     mux.pair({ protocol: 'hypershell-tunnel-local' }, function () {
-      const tunnel = new LocalTunnelServer({ node, socket, mux })
+      const tunnel = new LocalTunnelServer({ node, socket, mux, options })
       if (!tunnel.channel) return
       tunnel.open()
     })

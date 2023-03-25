@@ -82,6 +82,7 @@ hypershell-copy ~/Desktop/some-folder cdb7b7774c3d90547ce2038b51367dc4c96c42abf7
 ```
 
 ## Tunnel proxy
+
 It creates a local server, and every connection is forwarded to the remote host.
 
 In this example, creates a local tunnel at `127.0.0.1:2020` (where you can connect to),\
@@ -96,6 +97,27 @@ You can also pass several `-L` to run multiple local servers that remote forward
 ```bash
 hypershell remote_peer -L 2020:127.0.0.1:3000 -L 2021:127.0.0.1:3000 -L 2022:127.0.0.1:3000
 ```
+
+#### Server
+
+By default, `hypershell-server` runs a server with full access, including forwarding to all hosts and ports.
+
+You can run a server with restricted permissions to allow forwarding a specific host and port only.
+
+Let's say you have a local project like a React app at `http://127.0.0.1:3000/`,\
+you can create a restricted server to safely share this unique port like so:
+
+```bash
+hypershell-server --protocol tunnel --tunnel-host 127.0.0.1 --tunnel-port 3000
+```
+
+Or if you want to allow multiple hosts, port range, etc:
+
+```bash
+hypershell-server --protocol tunnel  --tunnel-host 127.0.0.1 --tunnel-host 192.168.0.25 --tunnel-port 1080 --tunnel-port 3000 --tunnel-port 4100-4200
+```
+
+Clients trying to connect to your server using different hosts/ports they will be automatically disconnected.
 
 ## Multiple keys
 To have multiple servers, you need multiple keys.
