@@ -25,6 +25,7 @@ program
   .option('-f <filename>', 'Filename of the server seed key.', path.join(SHELLDIR, 'peer'))
   // .option('--key <hex or z32>', 'Inline key for the server.')
   .option('--firewall <filename>', 'List of allowed public keys.', path.join(SHELLDIR, 'authorized_peers'))
+  .option('--disable-firewall', 'Allow anyone to connect.', false)
   .option('--protocol <name...>', 'List of allowed protocols.')
   .option('--tunnel-host <address...>', 'Restrict tunneling to a limited set of hosts.')
   .option('--tunnel-port <port...>', 'Restrict tunneling to a limited set of ports.')
@@ -41,11 +42,14 @@ async function cmd (options = {}) {
     await keygen({ f: keyfile })
   }
 
-  let allowed = readAuthorizedPeers(firewall)
-  const unwatchFirewall = readFile(firewall, function (buf) {
-    allowed = readAuthorizedPeers(buf)
-  })
-  goodbye(() => unwatchFirewall(), 3)
+  let allowed = options.disableFirewall === true
+  if (!allowed) {
+    allowed = readAuthorizedPeers(firewall)
+    const unwatchFirewall = readFile(firewall, function (buf) {
+      allowed = readAuthorizedPeers(buf)
+    })
+    goodbye(() => unwatchFirewall(), 3)
+  }
 
   const seed = Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
   const keyPair = DHT.keyPair(seed)
@@ -71,6 +75,11 @@ async function cmd (options = {}) {
   }
 
   function onFirewall (remotePublicKey, remoteHandshakePayload) {
+    if (allowed === true) {
+      console.log('Firewall allowed:', remotePublicKey.toString('hex'))
+      return false
+    }
+
     for (const publicKey of allowed) {
       if (remotePublicKey.equals(publicKey)) {
         console.log('Firewall allowed:', remotePublicKey.toString('hex'))

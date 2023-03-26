@@ -13,7 +13,7 @@ npm i -g hypershell
 hypershell-keygen [-f keyfile] [-c comment]
 
 # Create a P2P shell server
-hypershell-server [-f keyfile] [--firewall filename] [--protocol name]
+hypershell-server [-f keyfile] [--firewall filename] [--disable-firewall] [--protocol name]
 
 # Connect to a P2P shell
 hypershell [-f keyfile] <server name or public key>
@@ -47,6 +47,8 @@ hypershell-server
 
 `~/.hypershell/authorized_peers` file will be empty, denying all connections by default.\
 Public keys can be added to the list to allow them in real-time.
+
+Or you can use the `--disable-firewall` flag to allow anyone to connect, useful for public services like game servers.
 
 ## Known peers
 There will be a file `~/.hypershell/known_peers`.
