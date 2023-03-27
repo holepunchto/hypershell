@@ -97,7 +97,7 @@ function onconnection ({ protocols, options }, socket) {
   socket.on('end', () => socket.end())
   socket.on('close', () => console.log('Connection closed', socket.remotePublicKey.toString('hex')))
   socket.on('error', function (error) {
-    if (error.code === 'ECONNRESET') return
+    if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') return
     console.error(error.code, error)
   })
 
