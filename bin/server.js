@@ -67,12 +67,11 @@ async function cmd (options = {}) {
   if (protocols === PROTOCOLS) {
     console.log('To connect to this shell, on another computer run:')
     console.log('hypershell ' + keyPair.publicKey.toString('hex'))
-    console.log()
   } else {
     console.log('Running server with restricted protocols')
     console.log('Server key: ' + keyPair.publicKey.toString('hex'))
-    console.log()
   }
+  console.log()
 
   function onFirewall (remotePublicKey, remoteHandshakePayload) {
     if (allowed === true) {
