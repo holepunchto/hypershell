@@ -67,12 +67,11 @@ async function cmd (options = {}) {
   if (protocols === PROTOCOLS) {
     console.log('To connect to this shell, on another computer run:')
     console.log('hypershell ' + keyPair.publicKey.toString('hex'))
-    console.log()
   } else {
     console.log('Running server with restricted protocols')
     console.log('Server key: ' + keyPair.publicKey.toString('hex'))
-    console.log()
   }
+  console.log()
 
   function onFirewall (remotePublicKey, remoteHandshakePayload) {
     if (allowed === true) {
@@ -97,7 +96,10 @@ function onconnection ({ protocols, options }, socket) {
 
   socket.on('end', () => socket.end())
   socket.on('close', () => console.log('Connection closed', socket.remotePublicKey.toString('hex')))
-  socket.on('error', (error) => console.error(error.code, error))
+  socket.on('error', function (error) {
+    if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') return
+    console.error(error.code, error)
+  })
 
   socket.setKeepAlive(5000)
 
