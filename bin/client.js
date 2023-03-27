@@ -34,6 +34,7 @@ async function cmd (serverPublicKey, options = {}) {
 
   if (options.L) {
     // Partially hardcoded "ClientSocket" here as tunnels behaves different, until we can organize better the dht, socket, and mux objects
+
     serverPublicKey = getKnownPeer(serverPublicKey)
 
     const seed = Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
@@ -50,6 +51,7 @@ async function cmd (serverPublicKey, options = {}) {
 
       console.log('Tunnel on TCP', getHost(tunnel.server.address().address) + ':' + tunnel.server.address().port)
     }
+
     return
   }
 
