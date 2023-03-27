@@ -96,7 +96,10 @@ function onconnection ({ protocols, options }, socket) {
 
   socket.on('end', () => socket.end())
   socket.on('close', () => console.log('Connection closed', socket.remotePublicKey.toString('hex')))
-  socket.on('error', (error) => console.error(error.code, error))
+  socket.on('error', function (error) {
+    if (error.code === 'ECONNRESET') return
+    console.error(error.code, error)
+  })
 
   socket.setKeepAlive(5000)
 
