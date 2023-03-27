@@ -12,7 +12,7 @@ npm i -g hypershell
 # Create keys
 hypershell-keygen [-f keyfile] [-c comment]
 
-# Create a P2P shell server
+# Create a P2P server
 hypershell-server [-f keyfile] [--firewall filename] [--disable-firewall] [--protocol name]
 
 # Connect to a P2P shell

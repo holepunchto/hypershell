@@ -34,6 +34,8 @@
     "protomux": "^3.4.0",
     "pump": "^3.0.0",
     "read-file-live": "^1.0.1",
+    "ready-resource": "^1.0.0",
+    "safety-catch": "^1.0.2",
     "tar-fs": "^2.1.1",
     "tiny-configs": "^1.1.0",
     "tt-native": "^1.0.2"
