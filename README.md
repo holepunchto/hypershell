@@ -16,13 +16,13 @@ hypershell-keygen [-f keyfile] [-c comment]
 hypershell-server [-f keyfile] [--firewall filename] [--disable-firewall] [--protocol name]
 
 # Connect to a P2P shell
-hypershell [-f keyfile] <server name or public key>
+hypershell <server key or name> [-f keyfile]
 
-# Tunnel proxy that forwards to remote host
-hypershell [-L [address:]port:host:hostport] <server name or public key>
+# Local tunnel that forwards to remote host
+hypershell <server key or name> -L [address:]port:host:hostport
 
 # Copy files (download and upload)
-hypershell-copy [-f keyfile] <[@host:]source> <[@host:]target>
+hypershell-copy <[@host:]source> <[@host:]target> [-f keyfile]
 ```
 
 Use `--help` with any command for more information, for example `hypershell-server --help`.
@@ -83,7 +83,7 @@ You can also use the public key of the server directly (without `@`):
 hypershell-copy ~/Desktop/some-folder cdb7b7774c3d90547ce2038b51367dc4c96c42abf7c2e794bb5eb036ec7793cd:/root/backup-folder
 ```
 
-## Tunnel proxy
+## Local tunnel
 
 #### Client
 
@@ -118,7 +118,7 @@ hypershell-server --protocol tunnel --tunnel-host 127.0.0.1 --tunnel-port 3000
 Or if you want to allow multiple hosts, port range, etc:
 
 ```bash
-hypershell-server --protocol tunnel  --tunnel-host 127.0.0.1 --tunnel-host 192.168.0.25 --tunnel-port 1080 --tunnel-port 3000 --tunnel-port 4100-4200
+hypershell-server --protocol tunnel --tunnel-host 127.0.0.1 --tunnel-host 192.168.0.25 --tunnel-port 1080 --tunnel-port 3000 --tunnel-port 4100-4200
 ```
 
 Clients trying to use any different hosts/ports are automatically disconnected.
