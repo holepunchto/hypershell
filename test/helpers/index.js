@@ -5,7 +5,7 @@ const os = require('os')
 const { spawn } = require('child_process')
 // const { spawnSync } = require('child_process')
 const createTestnet = require('@hyperswarm/testnet')
-const DHT = require('@hyperswarm/dht')
+const DHT = require('hyperdht')
 const Keychain = require('keypear')
 
 const BIN_KEYGEN = path.join(__dirname, '..', '..', 'bin/keygen.js')
