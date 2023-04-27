@@ -25,7 +25,7 @@ test('keygen', async function (t) {
       t.pass('No user-specific file permissions on windows')
     } else {
       const mode = fs.statSync(keyfile).mode.toString(8) // byte repr
-      const permissions = mode.slice(mode.length - 3)
+      const permissions = mode.slice(-3)
       t.is(permissions, '600') // Only user can access
     }
   })
