@@ -5,11 +5,10 @@ const { create, spawnKeygen, spawnServer, spawnClient, spawnCopy, waitForProcess
 const { shellFile } = require('../lib/shell.js')
 
 test('keygen', async function (t) {
-  t.plan(5)
+  t.plan(6)
 
   const { root } = await create(t)
   const keyfile = path.join(root, 'peer-random')
-
   t.absent(fs.existsSync(keyfile))
 
   const keygen = spawnKeygen(t, { keyfile })
@@ -20,7 +19,12 @@ test('keygen', async function (t) {
     if (data.indexOf('Your key has been saved') > -1) t.pass('key saved')
   })
 
-  keygen.on('close', () => t.ok(fs.existsSync(keyfile)))
+  keygen.on('close', () => {
+    t.ok(fs.existsSync(keyfile))
+    const mode = fs.statSync(keyfile).mode.toString(8) // byte repr
+    const permissions = mode.slice(mode.length - 3)
+    t.is(permissions, '600') // Only user can access
+  })
 
   await waitForProcess(keygen)
 })
