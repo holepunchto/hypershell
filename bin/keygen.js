@@ -52,7 +52,7 @@ async function cmd (options = {}) {
 
   const seed = Keychain.seed()
   fs.mkdirSync(path.dirname(keyfile), { recursive: true })
-  fs.writeFileSync(keyfile, seed.toString('hex') + comment + '\n', { flag: 'wx' })
+  fs.writeFileSync(keyfile, seed.toString('hex') + comment + '\n', { flag: 'wx', mode: '600' })
 
   console.log('Your key has been saved in', keyfile)
   console.log('The public key is:')
