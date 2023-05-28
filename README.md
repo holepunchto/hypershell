@@ -160,4 +160,4 @@ Restrict to tunnel only:\
 For example, if you only allow `tunnel`, then any attempt from clients to `shell` into the server will auto disconnect them.
 
 ## License
-MIT
+Apache-2.0
