@@ -18,7 +18,7 @@
     "url": "https://github.com/holepunchto/hypershell.git"
   },
   "author": "Lucas Barrena (@LuKks)",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/holepunchto/hypershell/issues"
   },
