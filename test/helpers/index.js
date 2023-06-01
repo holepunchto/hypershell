@@ -4,7 +4,7 @@ const fsp = require('fs/promises')
 const os = require('os')
 const { spawn } = require('child_process')
 // const { spawnSync } = require('child_process')
-const createTestnet = require('@hyperswarm/testnet')
+const createTestnet = require('hyperdht/testnet')
 const DHT = require('hyperdht')
 const Keychain = require('keypear')
 
