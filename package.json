@@ -25,11 +25,10 @@
   "homepage": "https://github.com/holepunchto/hypershell",
   "dependencies": {
     "@hyperswarm/secret-stream": "^6.1.0",
-    "@hyperswarm/testnet": "^3.1.1",
     "commander": "^9.4.1",
     "compact-encoding": "^2.11.0",
     "graceful-goodbye": "^1.1.0",
-    "hyperdht": "^6.5.2",
+    "hyperdht": "^6.6.0",
     "keypear": "^1.1.1",
     "protomux": "^3.4.0",
     "pump": "^3.0.0",
