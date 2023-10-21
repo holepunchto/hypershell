@@ -6,6 +6,7 @@ const { Command } = require('commander')
 const Protomux = require('protomux')
 const DHT = require('hyperdht')
 const goodbye = require('graceful-goodbye')
+const HypercoreId = require('hypercore-id-encoding')
 const { SHELLDIR } = require('../constants.js')
 const { ClientSocket } = require('../lib/client-socket.js')
 const { ShellClient } = require('../lib/shell.js')
@@ -37,7 +38,7 @@ async function cmd (serverPublicKey, options = {}) {
 
     serverPublicKey = getKnownPeer(serverPublicKey)
 
-    const seed = Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
+    const seed = HypercoreId.encode(fs.readFileSync(keyfile, 'utf8').trim())
     const keyPair = DHT.keyPair(seed)
 
     const node = new DHT({ bootstrap: options.testnet ? [{ host: '127.0.0.1', port: 40838 }] : undefined })

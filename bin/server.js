@@ -7,6 +7,7 @@ const DHT = require('hyperdht')
 const goodbye = require('graceful-goodbye')
 const Protomux = require('protomux')
 const readFile = require('read-file-live')
+const HypercoreId = require('hypercore-id-encoding')
 const { SHELLDIR } = require('../constants.js')
 const { waitForSocketTermination } = require('../lib/client-socket.js')
 const { ShellServer } = require('../lib/shell.js')
@@ -50,8 +51,7 @@ async function cmd (options = {}) {
     })
     goodbye(() => unwatchFirewall(), 3)
   }
-
-  const seed = Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
+  const seed = HypercoreId.decode(fs.readFileSync(keyfile, 'utf8').trim())
   const keyPair = DHT.keyPair(seed)
 
   const node = new DHT({ bootstrap: options.testnet ? [{ host: '127.0.0.1', port: 40838 }] : undefined })
@@ -66,27 +66,27 @@ async function cmd (options = {}) {
 
   if (protocols === PROTOCOLS) {
     console.log('To connect to this shell, on another computer run:')
-    console.log('hypershell ' + keyPair.publicKey.toString('hex'))
+    console.log('hypershell ' + HypercoreId.encode(keyPair.publicKey))
   } else {
     console.log('Running server with restricted protocols')
-    console.log('Server key: ' + keyPair.publicKey.toString('hex'))
+    console.log('Server key: ' + HypercoreId.encode(keyPair.publicKey))
   }
   console.log()
 
   function onFirewall (remotePublicKey, remoteHandshakePayload) {
     if (allowed === true) {
-      console.log('Firewall allowed:', remotePublicKey.toString('hex'))
+      console.log('Firewall allowed:', HypercoreId.encode(remotePublicKey))
       return false
     }
 
     for (const publicKey of allowed) {
       if (remotePublicKey.equals(publicKey)) {
-        console.log('Firewall allowed:', remotePublicKey.toString('hex'))
+        console.log('Firewall allowed:', HypercoreId.encode(remotePublicKey))
         return false
       }
     }
 
-    console.log('Firewall denied:', remotePublicKey.toString('hex'))
+    console.log('Firewall denied:', HypercoreId.encode(remotePublicKey))
     return true
   }
 }
@@ -95,7 +95,7 @@ function onconnection ({ protocols, options }, socket) {
   const node = this.dht
 
   socket.on('end', () => socket.end())
-  socket.on('close', () => console.log('Connection closed', socket.remotePublicKey.toString('hex')))
+  socket.on('close', () => console.log('Connection closed', HypercoreId.encode(socket.remotePublicKey)))
   socket.on('error', function (error) {
     if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') return
     console.error(error.code, error)
@@ -154,7 +154,7 @@ function readAuthorizedPeers (filename) {
   try {
     const list = typeof filename === 'string' ? fs.readFileSync(filename, 'utf8') : filename
     return configs.parse(list)
-      .map(v => Buffer.from(v, 'hex'))
+      .map(v => HypercoreId.decode(v))
   } catch (error) {
     if (error.code === 'ENOENT') return []
     throw error

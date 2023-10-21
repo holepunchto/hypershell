@@ -7,6 +7,7 @@ const { spawn } = require('child_process')
 const createTestnet = require('hyperdht/testnet')
 const DHT = require('hyperdht')
 const Keychain = require('keypear')
+const HypercoreId = require('hypercore-id-encoding')
 
 const BIN_KEYGEN = path.join(__dirname, '..', '..', 'bin/keygen.js')
 const BIN_SERVER = path.join(__dirname, '..', '..', 'bin/server.js')
@@ -109,15 +110,15 @@ function spawnCopy (t, source, target, { clientkey }) {
 function keygen (keyfile) {
   const seed = Keychain.seed()
   fs.mkdirSync(path.dirname(keyfile), { recursive: true })
-  fs.writeFileSync(keyfile, seed.toString('hex') + '\n', { flag: 'wx' })
+  fs.writeFileSync(keyfile, HypercoreId.encode(seed) + '\n', { flag: 'wx' })
   return DHT.keyPair(seed)
 }
 
 function addAuthorizedPeer (firewall, keyfile) {
-  const seed = Buffer.from(fs.readFileSync(keyfile, 'utf8'), 'hex')
+  const seed = HypercoreId.decode(fs.readFileSync(keyfile, 'utf8').trim())
   const keyPair = DHT.keyPair(seed)
   if (!fs.existsSync(firewall)) fs.writeFileSync(firewall, '# <public key>\n', { flag: 'wx' })
-  fs.appendFileSync(firewall, keyPair.publicKey.toString('hex') + '\n')
+  fs.appendFileSync(firewall, HypercoreId.encode(keyPair.publicKey) + '\n')
 }
 
 async function useTestnet (t) {

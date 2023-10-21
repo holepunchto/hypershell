@@ -6,6 +6,7 @@ const readline = require('readline')
 const { Command } = require('commander')
 const Keychain = require('keypear')
 const DHT = require('hyperdht')
+const HypercoreId = require('hypercore-id-encoding')
 const { SHELLDIR } = require('../constants.js')
 
 const isModule = require.main !== module
@@ -52,11 +53,11 @@ async function cmd (options = {}) {
 
   const seed = Keychain.seed()
   fs.mkdirSync(path.dirname(keyfile), { recursive: true })
-  fs.writeFileSync(keyfile, seed.toString('hex') + comment + '\n', { flag: 'wx', mode: '600' })
+  fs.writeFileSync(keyfile, HypercoreId.encode(seed) + comment + '\n', { flag: 'wx', mode: '600' })
 
   console.log('Your key has been saved in', keyfile)
   console.log('The public key is:')
-  console.log(DHT.keyPair(seed).publicKey.toString('hex'))
+  console.log(HypercoreId.encode(DHT.keyPair(seed).publicKey))
 
   if (isModule) console.log()
 }
