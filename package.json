@@ -28,6 +28,7 @@
     "commander": "^9.4.1",
     "compact-encoding": "^2.11.0",
     "graceful-goodbye": "^1.1.0",
+    "hypercore-id-encoding": "^1.2.0",
     "hyperdht": "^6.6.0",
     "keypear": "^1.1.1",
     "protomux": "^3.4.0",
