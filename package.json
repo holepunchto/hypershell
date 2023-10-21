@@ -1,6 +1,6 @@
 {
   "name": "hypershell",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "Spawn shells anywhere. Fully peer-to-peer, authenticated, and end to end encrypted",
   "main": "index.js",
   "bin": {
