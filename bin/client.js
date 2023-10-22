@@ -38,7 +38,7 @@ async function cmd (serverPublicKey, options = {}) {
 
     serverPublicKey = getKnownPeer(serverPublicKey)
 
-    const seed = HypercoreId.encode(fs.readFileSync(keyfile, 'utf8').trim())
+    const seed = HypercoreId.decode(fs.readFileSync(keyfile, 'utf8').trim())
     const keyPair = DHT.keyPair(seed)
 
     const node = new DHT({ bootstrap: options.testnet ? [{ host: '127.0.0.1', port: 40838 }] : undefined })
