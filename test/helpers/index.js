@@ -48,9 +48,10 @@ async function create (t) {
   const serverKeyPair = keygen(serverkey)
   addAuthorizedPeer(firewall, clientkey)
 
-  const swarm = await useTestnet(t)
+  const { swarm } = await useTestnet(t)
+  const bootstrap = swarm.bootstrap
 
-  return { root, clientkey, serverkey, firewall, swarm, clientKeyPair, serverKeyPair }
+  return { root, clientkey, serverkey, firewall, bootstrap, clientKeyPair, serverKeyPair }
 }
 
 // + should require to pass the args array, and just automatically append --testnet
@@ -68,8 +69,9 @@ function spawnKeygen (t, { keyfile }) {
   return sp
 }
 
-function spawnServer (t, { serverkey, firewall }) {
-  const sp = spawn(process.execPath, [BIN_SERVER, '-f', serverkey, '--firewall', firewall, '--testnet'], { timeout: 15000 })
+function spawnServer (t, { serverkey, firewall, bootstrap }) {
+  const bootstrapPort = bootstrap[0].port
+  const sp = spawn(process.execPath, [BIN_SERVER, '-f', serverkey, '--firewall', firewall, '--testnet', bootstrapPort], { timeout: 15000 })
   t.teardown(() => sp.kill())
 
   sp.stdout.setEncoding('utf8')
@@ -81,8 +83,9 @@ function spawnServer (t, { serverkey, firewall }) {
   return sp
 }
 
-function spawnClient (t, serverPublicKey, { clientkey }) {
-  const sp = spawn(process.execPath, [BIN_CLIENT, serverPublicKey, '-f', clientkey, '--testnet'], { timeout: 15000 })
+function spawnClient (t, serverPublicKey, { clientkey, bootstrap }) {
+  const bootstrapPort = bootstrap[0].port
+  const sp = spawn(process.execPath, [BIN_CLIENT, serverPublicKey, '-f', clientkey, '--testnet', bootstrapPort], { timeout: 15000 })
   t.teardown(() => sp.kill())
 
   sp.stdout.setEncoding('utf8')
@@ -94,8 +97,9 @@ function spawnClient (t, serverPublicKey, { clientkey }) {
   return sp
 }
 
-function spawnCopy (t, source, target, { clientkey }) {
-  const sp = spawn(process.execPath, [BIN_COPY, source, target, '-f', clientkey, '--testnet'], { timeout: 15000 })
+function spawnCopy (t, source, target, { clientkey, bootstrap }) {
+  const bootstrapPort = bootstrap[0].port
+  const sp = spawn(process.execPath, [BIN_COPY, source, target, '-f', clientkey, '--testnet', bootstrapPort], { timeout: 15000 })
   t.teardown(() => sp.kill())
 
   sp.stdout.setEncoding('utf8')
@@ -122,16 +126,10 @@ function addAuthorizedPeer (firewall, keyfile) {
 }
 
 async function useTestnet (t) {
-  const swarm = await createTestnet(3, { host: '127.0.0.1', port: 40838 })
+  const swarm = await createTestnet(3)
   t.teardown(() => swarm.destroy())
 
-  const bootstrap = swarm.nodes[0].address()
-  if (bootstrap.port !== 40838) {
-    await swarm.destroy()
-    throw new Error('Swarm failed to be created on specific port')
-  }
-
-  return swarm
+  return { swarm }
 }
 
 function sleep (ms) {

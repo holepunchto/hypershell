@@ -20,7 +20,7 @@ program
   .argument('<target>', 'Target')
   .option('-f <filename>', 'Filename of the client seed key.', path.join(SHELLDIR, 'peer'))
   // .option('--key <hex or z32>', 'Inline key for the client.')
-  .option('--testnet', 'Use a local testnet.', false)
+  .option('--testnet <number>', 'Use a local testnet.', parseInt)
   .action(cmd)
   .parseAsync()
 
@@ -44,7 +44,12 @@ async function cmd (sourcePath, targetPath, options = {}) {
     errorAndExit('Invalid source or target path.')
   }
 
-  const { node, socket } = ClientSocket({ keyfile, serverPublicKey, testnet: options.testnet })
+  let bootstrap = null
+  if (options.testnet != null) {
+    bootstrap = [{ host: '127.0.0.1', port: options.testnet }]
+  }
+
+  const { node, socket } = ClientSocket({ keyfile, serverPublicKey, bootstrap })
   const mux = new Protomux(socket)
 
   if (fileOperation === 'upload') {

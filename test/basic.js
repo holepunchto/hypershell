@@ -4,6 +4,8 @@ const fs = require('fs')
 const { create, spawnKeygen, spawnServer, spawnClient, spawnCopy, waitForProcess, waitForServerReady } = require('./helpers/index.js')
 const { shellFile } = require('../lib/shell.js')
 
+const DEBUG_LOGS = false
+
 test('keygen', async function (t) {
   t.plan(6)
 
@@ -36,12 +38,12 @@ test('keygen', async function (t) {
 test('shell', async function (t) {
   t.plan(4)
 
-  const { clientkey, serverkey, firewall, serverKeyPair } = await create(t)
-
-  const server = spawnServer(t, { serverkey, firewall })
+  const { clientkey, serverkey, firewall, serverKeyPair, bootstrap } = await create(t)
+  const server = spawnServer(t, { serverkey, firewall, bootstrap })
   server.once('close', (code) => t.pass('server closed: ' + code))
 
   server.stdout.on('data', (data) => {
+    if (DEBUG_LOGS) console.log(`<stdout server> ${data}`)
     if (data.startsWith('Firewall allowed:')) {
       t.pass('Server firewall allowed')
     }
@@ -49,10 +51,11 @@ test('shell', async function (t) {
 
   await waitForServerReady(server)
 
-  const client = spawnClient(t, serverKeyPair.publicKey.toString('hex'), { clientkey })
+  const client = spawnClient(t, serverKeyPair.publicKey.toString('hex'), { clientkey, bootstrap })
   client.on('close', (code) => t.pass('client closed: ' + code))
 
   client.stdout.on('data', (data) => {
+    if (DEBUG_LOGS) console.log(`<stdout client> ${data}`)
     if (data.indexOf('The number is: 1234') > -1) {
       t.pass('client stdout match')
 
@@ -74,7 +77,7 @@ test('shell', async function (t) {
 test('copy - upload (absolute path)', async function (t) {
   t.plan(5)
 
-  const { root, clientkey, serverkey, firewall, serverKeyPair } = await create(t)
+  const { root, clientkey, serverkey, firewall, serverKeyPair, bootstrap } = await create(t)
 
   const src = path.join(root, 'file-original.txt')
   const dst = path.join(root, 'file-backup.txt')
@@ -82,13 +85,13 @@ test('copy - upload (absolute path)', async function (t) {
   fs.writeFileSync(src, 'hello', { flag: 'wx' })
   t.absent(fs.existsSync(dst))
 
-  const server = spawnServer(t, { serverkey, firewall })
+  const server = spawnServer(t, { serverkey, firewall, bootstrap })
   server.once('close', (code) => t.pass('server closed: ' + code))
   await waitForServerReady(server)
 
   const pk = serverKeyPair.publicKey.toString('hex')
 
-  const upload = spawnCopy(t, src, pk + ':' + dst, { clientkey })
+  const upload = spawnCopy(t, src, pk + ':' + dst, { clientkey, bootstrap })
   upload.on('close', (code) => t.pass('upload closed: ' + code))
 
   upload.on('close', () => {
@@ -104,7 +107,7 @@ test('copy - upload (absolute path)', async function (t) {
 test('copy - download (absolute path)', async function (t) {
   t.plan(5)
 
-  const { root, clientkey, serverkey, firewall, serverKeyPair } = await create(t)
+  const { root, clientkey, serverkey, firewall, serverKeyPair, bootstrap } = await create(t)
 
   const src = path.join(root, 'file-original.txt')
   const dst = path.join(root, 'file-backup.txt')
@@ -112,13 +115,13 @@ test('copy - download (absolute path)', async function (t) {
   fs.writeFileSync(src, 'hello', { flag: 'wx' })
   t.absent(fs.existsSync(dst))
 
-  const server = spawnServer(t, { serverkey, firewall })
+  const server = spawnServer(t, { serverkey, firewall, bootstrap })
   server.once('close', (code) => t.pass('server closed: ' + code))
   await waitForServerReady(server)
 
   const pk = serverKeyPair.publicKey.toString('hex')
 
-  const download = spawnCopy(t, pk + ':' + src, dst, { clientkey })
+  const download = spawnCopy(t, pk + ':' + src, dst, { clientkey, bootstrap })
   download.on('close', (code) => t.pass('download closed: ' + code))
 
   download.on('close', () => {
