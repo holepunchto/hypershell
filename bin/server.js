@@ -30,7 +30,7 @@ program
   .option('--protocol <name...>', 'List of allowed protocols.')
   .option('--tunnel-host <address...>', 'Restrict tunneling to a limited set of hosts.')
   .option('--tunnel-port <port...>', 'Restrict tunneling to a limited set of ports.')
-  .option('--testnet', 'Use a local testnet.', false)
+  .option('--testnet <number>', 'Use a local testnet at the specified port.', parseInt)
   .action(cmd)
   .parseAsync()
 
@@ -54,7 +54,12 @@ async function cmd (options = {}) {
   const seed = HypercoreId.decode(fs.readFileSync(keyfile, 'utf8').trim())
   const keyPair = DHT.keyPair(seed)
 
-  const node = new DHT({ bootstrap: options.testnet ? [{ host: '127.0.0.1', port: 40838 }] : undefined })
+  let bootstrap = null
+  if (options.testnet) {
+    bootstrap = [{ host: '127.0.0.1', port: options.testnet }]
+  }
+
+  const node = new DHT({ bootstrap })
   goodbye(() => node.destroy(), 3)
 
   const server = node.createServer({ firewall: onFirewall })

@@ -22,7 +22,7 @@ program
   .option('-f <filename>', 'Filename of the client seed key.', path.join(SHELLDIR, 'peer'))
   .option('-L <[address:]port:host:hostport...>', 'Local port forwarding.')
   // .option('--primary-key <hex or z32>', 'Inline primary key for the client.')
-  .option('--testnet', 'Use a local testnet.', false)
+  .option('--testnet <number>', 'Use a local testnet at the specified port.', parseInt)
   .action(cmd)
   .parseAsync()
 
@@ -33,6 +33,11 @@ async function cmd (serverPublicKey, options = {}) {
     await keygen({ f: keyfile })
   }
 
+  let bootstrap = null
+  if (options.testnet) {
+    bootstrap = [{ host: '127.0.0.1', port: options.testnet }]
+  }
+
   if (options.L) {
     // Partially hardcoded "ClientSocket" here as tunnels behaves different, until we can organize better the dht, socket, and mux objects
 
@@ -41,7 +46,7 @@ async function cmd (serverPublicKey, options = {}) {
     const seed = HypercoreId.decode(fs.readFileSync(keyfile, 'utf8').trim())
     const keyPair = DHT.keyPair(seed)
 
-    const node = new DHT({ bootstrap: options.testnet ? [{ host: '127.0.0.1', port: 40838 }] : undefined })
+    const node = new DHT({ bootstrap })
     goodbye(() => node.destroy(), 2)
 
     for (const config of options.L) {
@@ -58,7 +63,7 @@ async function cmd (serverPublicKey, options = {}) {
 
   if (options.R) errorAndExit('-R not supported')
 
-  const { node, socket } = ClientSocket({ keyfile, serverPublicKey, testnet: options.testnet })
+  const { node, socket } = ClientSocket({ keyfile, serverPublicKey, bootstrap })
   const mux = new Protomux(socket)
 
   const shell = new ShellClient(this.rawArgs, { node, socket, mux })
