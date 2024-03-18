@@ -148,13 +148,13 @@ function readAuthorizedPeers (filename) {
   if (typeof filename === 'string' && !fs.existsSync(filename)) {
     console.log('Notice: creating default firewall', filename)
     fs.mkdirSync(path.dirname(filename), { recursive: true })
-    fs.writeFileSync(filename, '# <public key>\n', { flag: 'wx' })
+    fs.writeFileSync(filename, '# <public key> <name>\n', { flag: 'wx' })
   }
 
   try {
     const list = typeof filename === 'string' ? fs.readFileSync(filename, 'utf8') : filename
-    return configs.parse(list)
-      .map(v => HypercoreId.decode(v))
+    return configs.parse(list,{ split: ' ', length: 2 })
+      .map(v => HypercoreId.decode(v[0]))
   } catch (error) {
     if (error.code === 'ENOENT') return []
     throw error

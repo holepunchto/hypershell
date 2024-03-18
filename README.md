@@ -3,11 +3,13 @@
 Spawn shells anywhere. Fully peer-to-peer, authenticated, and end to end encrypted.
 
 ## Install
+
 ```
 npm i -g hypershell
 ```
 
 ## Usage
+
 ```shell
 # Create keys
 hypershell-keygen [-f keyfile] [-c comment]
@@ -28,19 +30,23 @@ hypershell-copy <[@host:]source> <[@host:]target> [-f keyfile]
 Use `--help` with any command for more information, for example `hypershell-server --help`.
 
 ## First steps
+
 Keys are automatically created with a default filename on first run.
 
 Otherwise, you can first do:
+
 ```bash
 hypershell-keygen
 ```
 
 Just connect to servers (they have to allow your public key):
+
 ```bash
 hypershell <server name or public key>
 ```
 
 You could also create a server:
+
 ```bash
 hypershell-server
 ```
@@ -48,30 +54,42 @@ hypershell-server
 `~/.hypershell/authorized_peers` file will be empty, denying all connections by default.\
 Public keys can be added to the list to allow them in real-time.
 
+Add named peers to the file like for example:
+
+```bash
+# <public key> <name>
+5eehd63aqbc1kzrf5roo89sc3gr4k6hezf5qwh8w44g1xzhmcogo home-pc
+```
+
 Or you can use the `--disable-firewall` flag to allow anyone to connect, useful for public services like game servers.
 
 ## Known peers
+
 There will be a file `~/.hypershell/known_peers`.
 
 Add named peers to the file like for example:
+
 ```bash
 # <name> <public key>
-home cdb7b7774c3d90547ce2038b51367dc4c96c42abf7c2e794bb5eb036ec7793cd 
+home cdb7b7774c3d90547ce2038b51367dc4c96c42abf7c2e794bb5eb036ec7793cd
 ```
 
 Now just `hypershell home` (it saves you writing the entire public key).
 
 ## hypershell-copy
+
 Similar to `scp`. It works with files, and with folders recursively.
 
 For the next examples, `remote_peer` is a name that can be added to the `known_peers` file.
 
 Upload a file from your desktop to a remote server:
+
 ```bash
 hypershell-copy ~/Desktop/file.txt @remote_peer:/root/file.txt
 ```
 
 Download a file from a remote server to your desktop:
+
 ```bash
 hypershell-copy @remote_peer:/root/database.json ~/Desktop/db-backup.json
 ```
@@ -79,6 +97,7 @@ hypershell-copy @remote_peer:/root/database.json ~/Desktop/db-backup.json
 Note: in the future, the `@` might be removed.
 
 You can also use the public key of the server directly (without `@`):
+
 ```bash
 hypershell-copy ~/Desktop/some-folder cdb7b7774c3d90547ce2038b51367dc4c96c42abf7c2e794bb5eb036ec7793cd:/root/backup-folder
 ```
@@ -91,6 +110,7 @@ It creates a local server, and every connection is forwarded to the remote host.
 
 In this example, creates a local tunnel at `127.0.0.1:2020` (where you can connect to),\
 that later gets forwarded to a remote server which it connects to `127.0.0.1:3000`:
+
 ```bash
 hypershell remote_peer -L 127.0.0.1:2020:127.0.0.1:3000
 ```
@@ -98,6 +118,7 @@ hypershell remote_peer -L 127.0.0.1:2020:127.0.0.1:3000
 Instead of `remote_peer` you can use the server public key as well.
 
 You can also pass several `-L` to run multiple local servers that remote forwards:
+
 ```bash
 hypershell remote_peer -L 2020:127.0.0.1:3000 -L 2021:127.0.0.1:3000 -L 2022:127.0.0.1:3000
 ```
@@ -124,14 +145,17 @@ hypershell-server --protocol tunnel --tunnel-host 127.0.0.1 --tunnel-host 192.16
 Clients trying to use any different hosts/ports are automatically disconnected.
 
 ## Multiple keys
+
 To have multiple servers, you need multiple keys.
 
 Generate another key:
+
 ```bash
 hypershell-keygen -f ~/.hypershell/my-server
 ```
 
 Now create a new shell server:
+
 ```bash
 hypershell-server -f ~/.hypershell/my-server --firewall ~/.hypershell/my-server-firewall
 ```
@@ -141,6 +165,7 @@ The client also accepts `-f` in case you need it.
 ## Restrict server protocols
 
 This is the list of server protocols:
+
 - `shell`
 - `upload`
 - `download`
@@ -160,4 +185,5 @@ Restrict to tunnel only:\
 For example, if you only allow `tunnel`, then any attempt from clients to `shell` into the server will auto disconnect them.
 
 ## License
+
 Apache-2.0
